@@ -12,8 +12,8 @@ try:
 except FileExistsError:
     pass
 
-upload_path = path + os.pathsep + "uploads" + os.pathsep
-download_path = path + os.pathsep + "outputs" + os.pathsep
+upload_path = os.path.join(path, "uploads")
+download_path = os.path.join(path, "outputs")
 
 def allowed_file(filename):
     '''

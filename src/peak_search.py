@@ -13,22 +13,29 @@ def peak_find(bound_df):
     return peaks
 
 def match_peaks(peaks, binding_df):
+
+    # peaks_mass = peaks["m/z"].to_numpy()
+    # peaks_intensity = peaks["I"].to_numpy()
+    # binding_masses = binding_df["Mass"].to_numpy()
+
     # find sites by matching
     binding_site_df = pd.DataFrame([])
 
     for idx in peaks.index:
         mass = peaks.loc[idx, "m/z"]
         intensity = peaks.loc[idx, "I"]
+        # mass = peaks_mass[idx]
 
         lower_bound = np.round(mass - config.tolerance)
         upper_bound = np.round(mass + config.tolerance)
 
         search_mask = (binding_df["Mass"] > lower_bound) & (binding_df["Mass"] < upper_bound)
+        # search_mask = (binding_masses > lower_bound) & (binding_masses < upper_bound)
         number_of_searches = np.sum(search_mask)
         
         if number_of_searches > 0:
             binding_sites = binding_df[search_mask]
-            binding_site_df = binding_site_df.append(binding_sites, ignore_index=True)
+            binding_site_df = binding_site_df.append(binding_sites, ignore_index=True) ###### speed up
 
     return binding_site_df
     

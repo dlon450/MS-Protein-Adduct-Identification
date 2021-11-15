@@ -43,7 +43,7 @@ def create_binding_list(other_compounds_df, protein_df):
             potential_bonded_mass[i] = total_mass
             i += 1
     
-    binding_df = pd.DataFrame({"Compound": potential_bonded_cmpd, "Mass": total_mass})
+    binding_df = pd.DataFrame({"Compound": potential_bonded_cmpd, "Mass": potential_bonded_mass})
     # binding_df.index = range(binding_df.shape[0])
 
     return binding_df
