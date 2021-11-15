@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Binding Site Prediction</title>
+	
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <script src="{{ url_for('static', filename='js/jquery-3.5.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+	 
+  </head>
+  <body>
+    <h1> Binding Site Prediction</h1>
+
+	<!-- Upload functionality -->
+	<div>
+		<form method=POST class="form-signin" enctype=multipart/form-data
+			action="{{ url_for('upload') }}">
+			<p> Note: files must all be excel spreadsheets (.xlsx)</p>
+			<div class="form-label-group">
+				<div class="custom-file">
+					<input type=file name=bound_file id="file" class="custom-file-input" multiple>
+					<label class="custom-file-label" for="bound_file">Choose bound mass spectrometry data file</label>
+        </div>
+        <br> </br>
+        <div class="custom-file">
+					<input type=file name=unbound_file id="file" class="custom-file-input" multiple>
+					<label class="custom-file-label" for="unbound_file">Choose unbound mass spectrometry data file</label>
+        </div>
+        <br> </br>
+        <div class="custom-file">
+					<input type=file name=compound_file id="file" class="custom-file-input" multiple>
+					<label class="custom-file-label" for="compound_file">Choose compounds constraint file</label>
+				</div>
+      </div>
+      <br> </br>
+			<button type="submit"
+				class="btn btn-primary btn-block">Submit</button>
+		</form>
+	</div>
+	
+	<script>
+        // Add the following code if you want the name of the file appear on select
+        $(".custom-file-input").on("change", function () {
+            var fileName = $(this).val().split("\\").pop();
+            $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+        });
+  </script>
+
+  <br> </br>
+  <!-- Download link for processed file -->
+
+  {% if analysis_complete %}
+  <a href="{{ url_for('download', filename="BindingSites.xlsx") }}">Download the results here</a>
+  {% endif %}
+  
+	
+	{% extends "warnings.html" %}
+  {% block content %}
+  {% endblock %}
+	
+    
+  </body>
+</html>
