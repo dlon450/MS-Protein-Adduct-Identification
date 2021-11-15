@@ -4,13 +4,16 @@ from scipy.signal import find_peaks
 import config
 
 def peak_find(bound_df):
+    '''
+    Find peaks above 'peak_height' (default 0.05) intensity
+    '''
     peaks_idx, _ = find_peaks(bound_df['normalised_intensity'], height=config.peak_height)
     peaks = bound_df.loc[peaks_idx]
 
     return peaks
 
 def match_peaks(peaks, binding_df):
-    #find sites by matching
+    # find sites by matching
     binding_site_df = pd.DataFrame([])
 
     for idx in peaks.index:

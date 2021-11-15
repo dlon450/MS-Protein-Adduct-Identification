@@ -9,6 +9,9 @@ def normalise(spectrum):
     return spectrum
 
 def normalise_spectrums(unbound_df, bound_df):
+    '''
+    Normalise unbound/bound spectrums
+    '''
     bound_df = normalise(bound_df)
     unbound_df = normalise(unbound_df)
 

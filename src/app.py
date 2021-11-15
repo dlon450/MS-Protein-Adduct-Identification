@@ -12,12 +12,14 @@ try:
 except FileExistsError:
     pass
 
-upload_path = path + "/uploads/"
-download_path = path + "/outputs/"
+upload_path = path + os.pathsep + "uploads" + os.pathsep
+download_path = path + os.pathsep + "outputs" + os.pathsep
 
 def allowed_file(filename):
+    '''
+    Check file is of valid type (.xlsx or .csv)
+    '''
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
@@ -59,7 +61,7 @@ def upload():
         print('Downloaded!')
 
         # run external python module
-        #create file paths to read the file
+        # create file paths to read the file
         bound_file_path = os.path.join(upload_path, bound_filename)
         unbound_file_path = os.path.join(upload_path, unbound_filename)
         compounds_file_path = os.path.join(upload_path, compound_file)
@@ -78,7 +80,6 @@ def upload():
 
 def download_uploaded_file(filename, request, file_id):
     request.files[file_id].save(os.path.join(upload_path, filename))
-    
 
 @app.route('/download/<filename>', methods=['GET', 'POST'])
 def download(filename): 
