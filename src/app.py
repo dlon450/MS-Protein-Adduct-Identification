@@ -58,8 +58,6 @@ def upload():
         download_uploaded_file(unbound_filename, request, "unbound_file")
         download_uploaded_file(compound_file, request, "compound_file")
 
-        print('Downloaded!')
-
         # run external python module
         # create file paths to read the file
         bound_file_path = os.path.join(upload_path, bound_filename)
@@ -68,7 +66,7 @@ def upload():
 
         binding_site_df = search(bound_file_path, unbound_file_path, compounds_file_path)
 
-        print('Searching complete!')
+        print(binding_site_df)
 
         # download
         outputs = os.path.join(path, download_path)
@@ -86,7 +84,7 @@ def download(filename):
     # Appending app path to upload folder path within app root folder
     outputs = os.path.join(path, download_path)
     # Returning file from appended path
-    return send_from_directory(directory=outputs, filename=filename,as_attachment=True)
+    return send_from_directory(directory=outputs, filename=filename, as_attachment=True)
     
     
 if __name__ == "__main__":

@@ -50,8 +50,11 @@ def search(bound_file_path, unbound_file_path, compounds_file_path):
 
 if __name__ == "__main__":
     base_path = "Data/"
-    bound = base_path + "Deconvoluted Spectra/Ubiquitin_plusC_1in100_000001.xlsx"
+    fns = ["Ubi_1in100_broad band_000001", "Ubi_O_1in100_broadband_000001", "Ubi_T_1in100_broadband_000001", "Ubiquitin_plusC_1in100_000001"]
     unbound = base_path + "Deconvoluted Spectra/Ubi_1in100_broad band_000001.xlsx"
     compounds = base_path + "Compound Constraints/Compounds_CisOxTrans.xlsx"
 
-    binding_sites = search(bound, unbound, compounds)
+    for fn in fns:
+        bound = base_path + "Deconvoluted Spectra/" + fn + ".xlsx"
+        binding_sites = search(bound, unbound, compounds)
+        print(binding_sites)
