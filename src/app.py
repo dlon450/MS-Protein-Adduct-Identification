@@ -2,7 +2,7 @@ import os
 from flask import Flask, flash, request, redirect, url_for, render_template, send_from_directory, send_file 
 from werkzeug.utils import secure_filename
 import config
-from Binding_Site_Search import search
+from binding_site_search import search
 
 ALLOWED_EXTENSIONS = {'xlsx', 'csv'}
 
@@ -83,13 +83,13 @@ def download():
     outputs = os.path.join(path, download_path)
     print(outputs)
     # Returning file from appended path
-    return send_file(os.path.join(outputs, 'BindingSites.xlsx'), as_attachment=True)
+    return send_file(os.path.join(outputs, 'BindingSites.xlsx'), as_attachment=True) ### NEED TO USE INCOGNITO ###
 
-# @app.after_request
-# def cache_control(response):
-#     response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'
-#     response.headers['Cache-Control'] = 'public, max-age=0'
-#     return response
+@app.after_request
+def cache_control(response):
+    response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'
+    response.headers['Cache-Control'] = 'public, max-age=0'
+    return response
 
 def check_uploaded_files(unbound, bound, compound, analysis_complete):
     '''
