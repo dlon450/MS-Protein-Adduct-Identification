@@ -1,7 +1,7 @@
 # config constraints 
-tolerance = 6
+tolerance = 5
 protein = "Ubiquitin"
-peak_height = 0.1
+peak_height = 0.05
 
 # subscript formatting for strings
 SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")

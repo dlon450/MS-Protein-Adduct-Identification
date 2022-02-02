@@ -6,7 +6,14 @@ from scipy.spatial.distance import euclidean
 from fastdtw import fastdtw
 
 
-def find_isotope_pattern(formula_str, generator_num=20, plot_distribution=False):
+def average_mass(formula: object) -> float:
+    '''
+    Use isotope pattern to find average mass
+    '''
+    return np.dot(*find_isotope_pattern(formula))/100
+
+
+def find_isotope_pattern(formula_str: str, generator_num=20, plot_distribution=False):
     '''
     Return theoretical distribution of intensities
     '''
@@ -49,11 +56,14 @@ def calculate_score(f, peak_mass, search_mask, binding_df):
     binding_df.loc[best_idx, 'Best'] = True
         
 
-def calculate_score_no_interpolation(f, peak_mass, search_mask, binding_df, bound_df):
+def calculate_score_no_interpolation(peak_mass, search_mask, binding_df, bound_df):
     '''
     Return the compounds that best match the experimental distribution
     '''    
-    number_of_points = 20
+    exp_masses = bound_df['m/z'].to_numpy()
+    exp_abundance = bound_df['I'].to_numpy()
+
+    number_of_points = 16
     peak_compounds_df = binding_df[search_mask]
     idx = peak_compounds_df.index
     peak_compounds_df_list = peak_compounds_df.iloc[:,:2].to_dict('records')
@@ -62,21 +72,54 @@ def calculate_score_no_interpolation(f, peak_mass, search_mask, binding_df, boun
     best_distance = np.inf
 
     for i, compound_dict in enumerate(peak_compounds_df_list):
-        masses, theo_rel_abundance = find_isotope_pattern(''.join(compound_dict['Compound']), number_of_points)
-        interval = (masses[-1] - masses[0])/2
-        x = np.array(list(zip(masses, theo_rel_abundance)))
-        y = bound_df[abs(bound_df['m/z'] - peak_mass) <= interval][['m/z', 'I']].to_numpy()
-        y[:,1] = y[:,1] / y[:,1].sum() * 100
         
-        distance, _ = fastdtw(x[:,1], y[:,1], dist=euclidean)
+        distance = objective_func(''.join(compound_dict['Compound']), exp_masses, exp_abundance, peak_mass, number_of_points)
         binding_df.loc[idx[i], 'Loss'] = distance
+        binding_df.loc[idx[i], 'Peak'] = peak_mass
 
         if distance < best_distance:
             best_distance = distance
             best_idx = idx[i]
     
-    # plotWarpDTW(x[:,1], y[:,1], warp_path)
+    # plotWarpDTW(x, y, warp_path)
     binding_df.loc[best_idx, 'Best'] = True
+
+
+def objective_func(formula, exp_masses, exp_abundance, peak_mass, number_of_points=16):
+    '''
+    Returns the DTW loss
+    '''
+    if formula == '':
+        return 99999
+
+    masses, x = find_isotope_pattern(formula, number_of_points)
+    isotope_peak = masses[maxInBitonic(x, 0, number_of_points - 1)]
+    y = exp_abundance[exp_masses.searchsorted(peak_mass - isotope_peak + masses[0]): \
+        exp_masses.searchsorted(peak_mass + masses[-1] - isotope_peak, side='right')]
+    y = y / y.sum() * 100
+
+    distance, _ = fastdtw(x, y, dist=euclidean)
+    return distance
+
+
+def maxInBitonic(arr, l, r) :
+    '''
+    Binary search in Bitonic array https://www.geeksforgeeks.org/find-the-maximum-element-in-an-array-which-is-first-increasing-and-then-decreasing/
+    (Returns index of maximum)
+    '''
+    while (l <= r) :
+        m = int(l + (r - l) / 2)
+        if ((r == l + 1) and arr[l] >= arr[r]):
+            return l
+        if ((r == l + 1) and arr[l] < arr[r]):
+            return r
+        if (arr[m] > arr[m + 1] and arr[m] > arr[m - 1]):
+            return m
+        if (arr[m] > arr[m + 1] and arr[m] < arr[m - 1]) :
+            r = m - 1
+        else :
+            l = m + 1
+    return -1
 
 
 def plotWarpDTW(x1, x2, warp_path):
@@ -121,7 +164,9 @@ def plotIsotopeDistribution(isotope_distribution, title="Isotope distribution"):
 
 if __name__ == "__main__":
 
-    formula = 'C378H630N105O118S1H2OClK'
-    masses, rel_abundance = find_isotope_pattern(formula, plot_distribution=True)
+    formula = 'C378H630N105O118S1NH3'
+    masses, rel_abundance = find_isotope_pattern(formula, generator_num=16, plot_distribution=True)
     for mass, rel_adun in zip(masses, rel_abundance):
         print("Isotope", mass, "has abundance", rel_adun, "%")
+
+    print(np.dot(masses, rel_abundance)/100)

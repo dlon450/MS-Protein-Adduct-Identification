@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from isotope_pattern import *
 
 
-def peak_find(bound_df, peak_height):
+def peak_find(bound_df: pd.DataFrame, peak_height: np.float):
     '''
     Find peaks above 'peak_height' (default 0.05) intensity
     '''
@@ -16,7 +16,7 @@ def peak_find(bound_df, peak_height):
     return peaks, peaks_idx
 
 
-def plot_peaks(bound_df, peaks):
+def plot_peaks(bound_df: pd.DataFrame, peaks: pd.DataFrame):
     '''
     Plot MS and label peaks
     '''
@@ -34,6 +34,7 @@ def match_peaks(peaks, binding_df, bound_df, tolerance):
     binding_masses = binding_df["Mass"].to_numpy()
     
     # make new column in binding_df called Loss
+    binding_df['Peak'] = None
     binding_df['Loss'] = -1
     binding_df['Best'] = False
 
@@ -52,7 +53,7 @@ def match_peaks(peaks, binding_df, bound_df, tolerance):
         search_mask = (binding_masses > lower_bound) & (binding_masses < upper_bound)
         if any(search_mask):
             # calculate_score(find_intensities, mass, search_mask, binding_df) # allocate DTW scores
-            calculate_score_no_interpolation(find_intensities, mass, search_mask, binding_df, bound_df) #  allocate DTW scores with no interpolation
+            calculate_score_no_interpolation(mass, search_mask, binding_df, bound_df) #  allocate DTW scores with no interpolation
 
     binding_site_df = binding_df[binding_df['Loss'] != -1].sort_values(by='Mass')
     binding_site_df['Intensity'] = find_intensities(binding_site_df['Mass'].to_numpy())
