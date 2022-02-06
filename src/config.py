@@ -1,5 +1,5 @@
 # config constraints 
-tolerance = 5
+tolerance = 4
 protein = "Ubiquitin"
 peak_height = 0.05
 

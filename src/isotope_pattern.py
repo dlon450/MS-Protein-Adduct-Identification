@@ -2,15 +2,15 @@ from pyopenms import EmpiricalFormula, CoarseIsotopePatternGenerator
 import numpy as np
 from matplotlib import pyplot as plt
 from icecream import ic
-from scipy.spatial.distance import euclidean
-from fastdtw import fastdtw
+# from scipy.spatial.distance import euclidean
+from fastdtw import dtw
 
 
 def average_mass(formula: object) -> float:
     '''
     Use isotope pattern to find average mass
     '''
-    return np.dot(*find_isotope_pattern(formula))/100
+    return np.dot(*find_isotope_pattern(formula))
 
 
 def find_isotope_pattern(formula_str: str, generator_num=20, plot_distribution=False):
@@ -19,7 +19,7 @@ def find_isotope_pattern(formula_str: str, generator_num=20, plot_distribution=F
     '''
     seq_formula = EmpiricalFormula(formula_str)
     isotopes = seq_formula.getIsotopeDistribution( CoarseIsotopePatternGenerator(generator_num) )
-    masses, rel_abundance = zip(*[(iso.getMZ(), iso.getIntensity()*100) for iso in isotopes.getContainer()])
+    masses, rel_abundance = zip(*[(iso.getMZ(), iso.getIntensity()) for iso in isotopes.getContainer()])
     
     if plot_distribution:
         plotIsotopeDistribution(isotopes)
@@ -56,36 +56,42 @@ def calculate_score(f, peak_mass, search_mask, binding_df):
     binding_df.loc[best_idx, 'Best'] = True
         
 
-def calculate_score_no_interpolation(peak_mass, search_mask, binding_df, bound_df):
+def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=False):
     '''
     Return the compounds that best match the experimental distribution
-    '''    
+    '''
+    # find sites by matching
+    binding_site_record = dict.fromkeys(binding_dict.keys())
+
     exp_masses = bound_df['m/z'].to_numpy()
     exp_abundance = bound_df['I'].to_numpy()
 
     number_of_points = 16
-    peak_compounds_df = binding_df[search_mask]
-    idx = peak_compounds_df.index
-    peak_compounds_df_list = peak_compounds_df.iloc[:,:2].to_dict('records')
+    peak_compounds = binding_dict['Compound']
 
     best_idx = 0
     best_distance = np.inf
 
-    for i, compound_dict in enumerate(peak_compounds_df_list):
+    for i, compound_list in enumerate(peak_compounds):
         
-        distance = objective_func(''.join(compound_dict['Compound']), exp_masses, exp_abundance, peak_mass, number_of_points)
-        binding_df.loc[idx[i], 'Loss'] = distance
-        binding_df.loc[idx[i], 'Peak'] = peak_mass
+        distance = objective_func(''.join(compound_list), exp_masses, exp_abundance, peak_mass, number_of_points)
+        binding_dict['Loss'][i] = distance
 
         if distance < best_distance:
             best_distance = distance
-            best_idx = idx[i]
+            best_idx = i
     
     # plotWarpDTW(x, y, warp_path)
-    binding_df.loc[best_idx, 'Best'] = True
+    binding_dict['Best'][best_idx]= True
+    for key in binding_dict.keys():
+        binding_site_record[key] = binding_dict[key][best_idx]
+    
+    if full:
+        return binding_dict
+    return binding_site_record
 
 
-def objective_func(formula, exp_masses, exp_abundance, peak_mass, number_of_points=16):
+def objective_func(formula, exp_masses, exp_abundance, peak_mass, number_of_points):
     '''
     Returns the DTW loss
     '''
@@ -94,11 +100,12 @@ def objective_func(formula, exp_masses, exp_abundance, peak_mass, number_of_poin
 
     masses, x = find_isotope_pattern(formula, number_of_points)
     isotope_peak = masses[maxInBitonic(x, 0, number_of_points - 1)]
-    y = exp_abundance[exp_masses.searchsorted(peak_mass - isotope_peak + masses[0]): \
-        exp_masses.searchsorted(peak_mass + masses[-1] - isotope_peak, side='right')]
-    y = y / y.sum() * 100
+    difference = peak_mass - isotope_peak
+    y = exp_abundance[exp_masses.searchsorted(difference + masses[0]): \
+        exp_masses.searchsorted(difference + masses[-1], side='right')]
+    y = y / y.sum()
 
-    distance, _ = fastdtw(x, y, dist=euclidean)
+    distance, _ = dtw(x, y, dist=None)
     return distance
 
 

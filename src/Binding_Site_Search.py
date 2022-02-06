@@ -2,10 +2,9 @@ import pandas as pd
 import numpy as np
 
 import config
-from file_io import read
-from normalise import normalise_spectrums
+from utils import *
 from peak_search import *
-from theoretical_binding_list import create_binding_list
+from theoretical_binding_list import feasible_set_df
 
 import time
 
@@ -25,36 +24,34 @@ def search(bound_file_path, unbound_file_path, compounds_file_path, tolerance=co
     -------
     binding_sites_df: pd.DataFrame
     '''
-    print(tolerance, protein, peak_height)
+    print(f'\n-------- CONFIGURATION: Tolerance={tolerance}, Peak_Height={peak_height} --------\n')
     bound_df, unbound_df, compounds = read(bound_file_path, unbound_file_path, compounds_file_path)
 
-    # extract information about Ub and the other compounds
-    other_compounds_df = compounds[~compounds.Name.isin([protein, secondary])] # extract all compounds but primary/secondary
-    secondary_df = compounds[compounds.Name == secondary]
-    protein_df = compounds[compounds.Name == protein] # extract Ub information
+    unbound_df, bound_df = normalise_spectrums(unbound_df, bound_df) # scale spectrums between 0 and 1
+    peaks, peaks_idx = peak_find(bound_df, float(peak_height)) # find peaks 
+    binding_dicts = feasible_set_df(compounds, peaks, float(tolerance)) # feasible set of integer combinations
 
-    # Perform peak detection
-    # scale spectrums between 0 and 1
-    unbound_df, bound_df = normalise_spectrums(unbound_df, bound_df)
-
-    # find peaks 
-    peaks, peaks_idx = peak_find(bound_df, np.float(peak_height))
-
-    # create theoretical binding site list
-    binding_df = create_binding_list(other_compounds_df, protein_df, secondary_df)
-
-    # filter list using max value
-    max_binding_mass = np.max(binding_df["Mass"]) # maximum possible mass from all theoretical binding sites
-    peaks = peaks[peaks["m/z"] < max_binding_mass] # remove incorrect peaks
-    
-    binding_sites_df = match_peaks(peaks, binding_df, bound_df, np.float(tolerance))
+    # calculate objectives of solns
+    print('\nFinding loss...')
+    start = time.time()
+    full_data = True
+    best_compounds = [{}]*len(binding_dicts)
+    for i, (peak, binding_dict) in enumerate(binding_dicts.items()):
+        print(f'Peak {round(peak, 2)} ------', end=' ')
+        binding_sites_record = match_peaks(peak, binding_dict, bound_df, full=full_data)
+        best_compounds[i] = binding_sites_record
+    print('Elapsed (seconds):', str((time.time()-start)))
 
     # format compound names
+    if full_data:
+        print('\nCombining DataFrame...')
+        binding_sites_df = pd.concat(best_compounds)
+    else:
+        binding_sites_df = pd.DataFrame(best_compounds)
     binding_sites_df['Compound'] = [' + '.join(cmpd).translate(config.SUB) for cmpd in binding_sites_df['Compound']]
 
     if plot_peak_graph:
         plot_peaks(bound_df, peaks_idx)
-
     return binding_sites_df
 
 
@@ -63,12 +60,9 @@ if __name__ == "__main__":
     fns = ["Ubi_O_1in100_broadband_000001", "Ubi_T_1in100_broadband_000001", "Ubiquitin_plusC_1in100_000001"]
     fns = ["Ubiquitin_plusC_1in100_000001"]
     unbound = base_path + "Deconvoluted Spectra/Ubi_1in100_broad band_000001.xlsx"
-    compounds = base_path + "Compound Constraints/Compounds_CisOxTrans.xlsx"
+    compounds = base_path + "Compound Constraints/Compounds_CisOxTrans_nlp.xlsx"
 
-    print("Searching...")
     for fn in fns:
         bound = base_path + "Deconvoluted Spectra/" + fn + ".xlsx"
         binding_sites = search(bound, unbound, compounds)
-        # print(binding_sites[binding_sites.Best])
         print(binding_sites)
-        # print(binding_sites.to_html())
