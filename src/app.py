@@ -42,8 +42,10 @@ def upload():
         uploaded_compound = request.files['compound_file']
 
         tolerance = request.form.get('tolerance')
-        protein = request.form.get('protein')
         peak_height = request.form.get('peak_height')
+        multi_protein = request.form.get('multiprotein')
+        min_primaries = request.form.get('min_primaries')
+        full_data = request.form.get('fulldata')
 
         default, data_dir = check_uploaded_files(uploaded_unbound.filename, uploaded_bound.filename, uploaded_compound.filename, analysis_complete)
 
@@ -60,16 +62,17 @@ def upload():
         unbound_file_path = os.path.join(data_dir, config.unbound_filename)
         compounds_file_path = os.path.join(data_dir, config.compounds_list_filename)
 
-        binding_site_df = search(bound_file_path, unbound_file_path, compounds_file_path, tolerance, protein, peak_height)
+        binding_site_df = search(bound_file_path, unbound_file_path, compounds_file_path, \
+            tolerance, peak_height, multi_protein, min_primaries, full_data)
         print(binding_site_df)
 
         # download
         outputs = os.path.join(path, download_path)
-        output_xlsx = os.path.join(outputs, "BindingSites.xlsx")
-        output_html = os.path.join(outputs, "BindingSites.html")
+        output_csv = os.path.join(outputs, "BindingSites.csv")
+        # output_html = os.path.join(outputs, "BindingSites.html")
 
-        binding_site_df.to_excel(output_xlsx, index=False)
-        binding_site_df.to_html(output_html)
+        binding_site_df.to_csv(output_csv, index=False)
+        # binding_site_df.to_html(output_html)
         analysis_complete = True
 
     return render_template("home.html", analysis_complete=analysis_complete)
@@ -83,7 +86,7 @@ def download():
     outputs = os.path.join(path, download_path)
     print(outputs)
     # Returning file from appended path
-    return send_file(os.path.join(outputs, 'BindingSites.xlsx'), as_attachment=True) ### NEED TO USE INCOGNITO ###
+    return send_file(os.path.join(outputs, 'BindingSites.csv'), as_attachment=True) ### NEED TO USE INCOGNITO ###
 
 @app.after_request
 def cache_control(response):
@@ -114,7 +117,7 @@ def check_uploaded_files(unbound, bound, compound, analysis_complete):
         # check it is the valid file type
         allowed_files_mask = allowed_file(unbound) and allowed_file(bound) and allowed_file(compound)
         if not allowed_files_mask:
-            flash("Wrong File Type. Please only upload xlsx files. ")
+            flash("Wrong File Type. Please only upload csv or xlsx files. ")
             return render_template("home.html", analysis_complete=analysis_complete)
 
     return default, data_dir

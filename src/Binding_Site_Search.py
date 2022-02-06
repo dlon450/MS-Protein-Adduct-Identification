@@ -4,13 +4,14 @@ import numpy as np
 import config
 from utils import *
 from peak_search import *
-from theoretical_binding_list import feasible_set_df
+from feasible_set import feasible_set_df
 
 import time
 
 
 def search(bound_file_path, unbound_file_path, compounds_file_path, tolerance=config.tolerance, \
-    protein=config.protein, peak_height=config.peak_height, secondary='Platinum', plot_peak_graph=False):
+    peak_height=config.peak_height, multi_protein=config.multi_protein, min_primaries=config.min_primaries, \
+    full_data=config.full_data, plot_peak_graph=False):
     '''
     Search for appropriate binding sites
 
@@ -24,17 +25,18 @@ def search(bound_file_path, unbound_file_path, compounds_file_path, tolerance=co
     -------
     binding_sites_df: pd.DataFrame
     '''
-    print(f'\n-------- CONFIGURATION: Tolerance={tolerance}, Peak_Height={peak_height} --------\n')
+    print(f'\nCONFIGURATION: Tolerance={tolerance}, Peak_Height={peak_height}, Full_data={full_data}, Multi-protein={multi_protein}, Min_primaries={min_primaries}\n')
+    full_data = full_data == 'on'
+    multi_protein = multi_protein == 'on'
     bound_df, unbound_df, compounds = read(bound_file_path, unbound_file_path, compounds_file_path)
 
     unbound_df, bound_df = normalise_spectrums(unbound_df, bound_df) # scale spectrums between 0 and 1
     peaks, peaks_idx = peak_find(bound_df, float(peak_height)) # find peaks 
-    binding_dicts = feasible_set_df(compounds, peaks, float(tolerance)) # feasible set of integer combinations
+    binding_dicts = feasible_set_df(compounds, peaks, float(tolerance), multi_protein, int(min_primaries)) # feasible set of integer combinations
 
     # calculate objectives of solns
     print('\nFinding loss...')
     start = time.time()
-    full_data = True
     best_compounds = [{}]*len(binding_dicts)
     for i, (peak, binding_dict) in enumerate(binding_dicts.items()):
         print(f'Peak {round(peak, 2)} ------', end=' ')
@@ -48,7 +50,8 @@ def search(bound_file_path, unbound_file_path, compounds_file_path, tolerance=co
         binding_sites_df = pd.concat(best_compounds)
     else:
         binding_sites_df = pd.DataFrame(best_compounds)
-    binding_sites_df['Compound'] = [' + '.join(cmpd).translate(config.SUB) for cmpd in binding_sites_df['Compound']]
+    # binding_sites_df['Compound'] = [' + '.join(cmpd).translate(config.SUB) for cmpd in binding_sites_df['Compound']]
+    binding_sites_df['Compound'] = [' + '.join(cmpd) for cmpd in binding_sites_df['Compound']]
 
     if plot_peak_graph:
         plot_peaks(bound_df, peaks_idx)

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="margin:50px 200px 50px 200px;">
   <head>
     <meta charset="utf-8">
     <title>Binding Site Prediction</title>
@@ -34,9 +34,11 @@
 				</div>
       </div>
       <br> </br>
-      Tolerance: <input type="number" step="0.1" name="tolerance" value=1.0>
-      Protein: <input type="text" name="protein" value="Ubiquitin">
-      Peak Height: <input type="number" step="0.01" name="peak_height" value=0.05>
+      Tolerance: <input type="number" step="0.5" name="tolerance" value=4.0><br></br>
+      Peak Height: <input type="number" step="0.01" name="peak_height" value=0.05><br></br>
+      <input type="checkbox" name="fulldata" checked> All feasible solutions<br>
+      <input type="checkbox" name="multiprotein"> Multi-protein 
+      (minimum primaries: <input type="number" step="1" name="min_primaries" value=2>)
       <br> </br>
 			<button type="submit"
 				class="btn btn-primary btn-block">Submit</button>

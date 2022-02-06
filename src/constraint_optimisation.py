@@ -32,23 +32,29 @@ class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
         return self.__all_variables, self.__solution_count
 
 
-def feasible_set_search(compounds, compound_masses, compound_maximum, compound_minimum, peak_mass, tolerance=4):
+def feasible_set_search(compounds, compound_masses, compound_maximum, compound_minimum, \
+    peak_mass: float, tolerance=4, multi_protein=False, primaries=None, min_primaries=None):
     '''
     https://developers.google.com/optimization/cp/cp_solver#all_solutions
     '''
-    # Creates the model.
+    # Creates the model
     model = cp_model.CpModel()
 
-    # Creates the variables.
+    # Creates the variables and constraints
     x = [model.NewIntVar(int(compound_minimum[c]), int(compound_maximum[c]), c) for c in compounds]
-    # z = [model.NewIntVar(0, 1, f'binary_{c}') for c in compounds]
+    
+    if multi_protein:
+        z = [model.NewBoolVar('used_{c}') for c in compounds if primaries[c]]
+        j = 0
+        for i, c in enumerate(compounds):
+            if primaries[c]:
+                model.Add(x[i] == 0).OnlyEnforceIf(z[j].Not())
+                model.Add(x[i] > 0).OnlyEnforceIf(z[j])
+                j += 1
+        model.Add(sum(z) >= min_primaries)
 
-    # Create the constraints.
     model.Add(sum([x[i]*compound_masses[c] for i, c in enumerate(compounds)]) <= peak_mass + tolerance)
     model.Add(sum([x[i]*compound_masses[c] for i, c in enumerate(compounds)]) >= peak_mass - tolerance)
-    # for i, c in enumerate(compounds):
-    #     model.Add(z[i] * compound_minimum[c] <= x[i])
-    #     model.Add(x[i] <= z[i] * compound_maximum[c])
 
     # Create a solver and solve.
     solver = cp_model.CpSolver()
@@ -90,6 +96,9 @@ if __name__ == '__main__':
     max_amount_dict = dict(zip(formulas, max_amount))
     min_amount_dict = dict(zip(formulas, min_amount))
 
+    primaries_dict = dict(zip(formulas, compounds['Primaries'].notna().to_numpy()))
+    min_primaries = 3
+
     print('Searching for solutions...')
     start = time.time()
     print('Time started:', time.ctime(start))
@@ -97,7 +106,7 @@ if __name__ == '__main__':
     for peak in [8775,8792,8811,8828,9002,9019,9037,9055]:
         print(f'Peak {peak}: ', end='')
         solutions = feasible_set_search(formulas, masses_dict, max_amount_dict, min_amount_dict, \
-            peak_mass=peak*100000, tolerance=400000)
+            peak_mass=peak*100000, tolerance=400000, primaries=primaries_dict, min_primaries=min_primaries)
     
     end = time.time()
     print('Time ended:', time.ctime(end))
