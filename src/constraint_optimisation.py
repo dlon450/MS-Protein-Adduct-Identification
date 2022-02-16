@@ -10,7 +10,9 @@ PROTON_MASS = 1.007825
 
 
 class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
-    """Print intermediate solutions."""
+    '''
+    Print intermediate solutions
+    '''
 
     def __init__(self, variables):
         cp_model.CpSolverSolutionCallback.__init__(self)
@@ -33,16 +35,18 @@ class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
 
 
 def feasible_set_search(compounds, compound_masses, compound_maximum, compound_minimum, \
-    peak_mass: float, tolerance=4, multi_protein=False, primaries=None, min_primaries=None):
+        peak_mass: float, tolerance=4, multi_protein=False, primaries=None, min_primaries=None, \
+            max_primaries=None, metal_idx=None, max_per_metal=None):
     '''
-    https://developers.google.com/optimization/cp/cp_solver#all_solutions
+    Returns feasible integer solutions https://developers.google.com/optimization/cp/cp_solver#all_solutions
     '''
     # Creates the model
     model = cp_model.CpModel()
 
-    # Creates the variables and constraints
+    # Creates the variables
     x = [model.NewIntVar(int(compound_minimum[c]), int(compound_maximum[c]), c) for c in compounds]
     
+    # Add multi-protein constraints
     if multi_protein:
         z = [model.NewBoolVar('used_{c}') for c in compounds if primaries[c]]
         j = 0
@@ -52,7 +56,14 @@ def feasible_set_search(compounds, compound_masses, compound_maximum, compound_m
                 model.Add(x[i] > 0).OnlyEnforceIf(z[j])
                 j += 1
         model.Add(sum(z) >= min_primaries)
+        model.Add(sum(z) <= max_primaries)
 
+    # Add ratio constraints (max per metal)
+    for j, c in enumerate(compounds):
+        if not np.isnan(max_per_metal[c]):
+            model.Add(x[j] <= int(max_per_metal[c])*x[metal_idx])
+
+    # Add min/max constraints
     model.Add(sum([x[i]*compound_masses[c] for i, c in enumerate(compounds)]) <= peak_mass + tolerance)
     model.Add(sum([x[i]*compound_masses[c] for i, c in enumerate(compounds)]) >= peak_mass - tolerance)
 

@@ -13,7 +13,7 @@ def average_mass(formula: object) -> float:
     return np.dot(*find_isotope_pattern(formula))
 
 
-def find_isotope_pattern(formula_str: str, generator_num=20, plot_distribution=False):
+def find_isotope_pattern(formula_str: str, generator_num=16, plot_distribution=False):
     '''
     Return theoretical distribution of intensities
     '''
@@ -104,7 +104,6 @@ def objective_func(formula, exp_masses, exp_abundance, peak_mass, number_of_poin
     y = exp_abundance[exp_masses.searchsorted(difference + masses[0]): \
         exp_masses.searchsorted(difference + masses[-1], side='right')]
     y = y / y.sum()
-
     distance, _ = dtw(x, y, dist=None)
     return distance
 
