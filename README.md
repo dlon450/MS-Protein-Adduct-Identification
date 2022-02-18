@@ -2,7 +2,7 @@
 Identification of protein binding sites in deconvoluted mass spectrometry data by matching experimental peak distributions with potential isotope patterns.
 
 ## Getting Started
-To access the web app, run the src/app.py file. Otherwise, the algorithm can be run directly through src/binding_site_search.py. Note that **deconvoluted** spectrum will be required as input (for the bound and unbound MS csv files).
+To access the web app, run the src/app.py file. ```python src/app.py```Otherwise, the algorithm can be run directly through src/binding_site_search.py. ```python src/binding_site_search.py```Note that **deconvoluted** spectrum will be required as input (for the bound MS csv file).
 
 ## Built With
 * HTML/JS/CSS
