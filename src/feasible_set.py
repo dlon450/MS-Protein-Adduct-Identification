@@ -52,7 +52,8 @@ def feasible_set_df(compounds, peaks_mass, tolerance, multi_protein=False, min_p
             solution_dict[peak] = {
                 "Compound": output[0], 
                 "Protons": output[2],
-                "Mass": output[1]         
+                "Mass": output[1],
+                "PPM": abs(output[1] - peak) / output[1] * 1000000 
             }
     
     end = time.time()

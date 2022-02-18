@@ -2,8 +2,8 @@ from pyopenms import EmpiricalFormula, CoarseIsotopePatternGenerator
 import numpy as np
 from matplotlib import pyplot as plt
 from icecream import ic
-# from scipy.spatial.distance import euclidean
-from fastdtw import dtw
+from scipy.spatial.distance import euclidean
+from fastdtw import fastdtw, dtw
 
 
 def average_mass(formula: object) -> float:
@@ -13,7 +13,7 @@ def average_mass(formula: object) -> float:
     return np.dot(*find_isotope_pattern(formula))
 
 
-def find_isotope_pattern(formula_str: str, generator_num=16, plot_distribution=False):
+def find_isotope_pattern(formula_str: str, generator_num=16, paired=False, plot_distribution=False):
     '''
     Return theoretical distribution of intensities
     '''
@@ -23,6 +23,9 @@ def find_isotope_pattern(formula_str: str, generator_num=16, plot_distribution=F
     
     if plot_distribution:
         plotIsotopeDistribution(isotopes)
+
+    # isotope_peak = seq_formula.getMonoWeight()
+    # average_mass = seq_formula.getAverageWeight()
 
     return masses, rel_abundance
 
@@ -45,7 +48,7 @@ def calculate_score(f, peak_mass, search_mask, binding_df):
         exp_abundance = f(np.linspace(peak_mass-interval, peak_mass+interval, num=number_of_points))
         exp_rel_abundance = exp_abundance / exp_abundance.sum() * 100
 
-        distance, _ = fastdtw(theo_rel_abundance, exp_rel_abundance, dist=euclidean)
+        distance, _ = dtw(theo_rel_abundance, exp_rel_abundance, dist=None)
         binding_df.loc[idx[i], 'Loss'] = distance
         
         if distance < best_distance:
@@ -101,10 +104,17 @@ def objective_func(formula, exp_masses, exp_abundance, peak_mass, number_of_poin
     masses, x = find_isotope_pattern(formula, number_of_points)
     isotope_peak = masses[maxInBitonic(x, 0, number_of_points - 1)]
     difference = peak_mass - isotope_peak
-    y = exp_abundance[exp_masses.searchsorted(difference + masses[0]): \
-        exp_masses.searchsorted(difference + masses[-1], side='right')]
+    
+    start = exp_masses.searchsorted(difference + masses[0])
+    stop = exp_masses.searchsorted(difference + masses[-1], side='right')
+
+    y = exp_abundance[start:stop]
     y = y / y.sum()
-    distance, _ = dtw(x, y, dist=None)
+    # distance, _ = dtw(x, y, dist=None)
+
+    m = exp_masses[start:stop]
+    distance, _ = dtw(list(zip(masses, x)), list(zip(m, y)), dist=euclidean)
+
     return distance
 
 
@@ -170,7 +180,7 @@ def plotIsotopeDistribution(isotope_distribution, title="Isotope distribution"):
 
 if __name__ == "__main__":
 
-    formula = 'C378H630N105O118S1NH3'
+    formula = 'C378H630N105O118S1'
     masses, rel_abundance = find_isotope_pattern(formula, generator_num=16, plot_distribution=True)
     for mass, rel_adun in zip(masses, rel_abundance):
         print("Isotope", mass, "has abundance", rel_adun, "%")

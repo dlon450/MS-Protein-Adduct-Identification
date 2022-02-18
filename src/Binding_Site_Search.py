@@ -31,7 +31,7 @@ def search(bound_file_path, compounds_file_path, tolerance=config.tolerance, pea
     bound_df, compounds = read(bound_file_path, compounds_file_path)
 
     bound_df = normalise(bound_df) # scale spectrums between 0 and 1
-    peaks, peaks_idx = peak_find(bound_df, float(peak_height)) # find peaks 
+    peaks, peaks_idx, keep = peak_find(bound_df, float(peak_height)) # find peaks 
     binding_dicts = feasible_set_df(compounds, peaks, float(tolerance), multi_protein, int(min_primaries), int(max_primaries)) # feasible set of integer combinations
 
     # calculate objectives of solns
@@ -56,17 +56,17 @@ def search(bound_file_path, compounds_file_path, tolerance=config.tolerance, pea
     binding_sites_df['Compound'] = [' + '.join(cmpd) for cmpd in binding_sites_df['Compound']]
 
     if plot_peak_graph:
-        plot_peaks(bound_df, peaks_idx)
+        plot_peaks(bound_df, peaks_idx, keep)
     return binding_sites_df
 
 
 if __name__ == "__main__":
-    base_path = "Data/"
-    fns = ["Ubi_O_1in100_broadband_000001", "Ubi_T_1in100_broadband_000001", "Ubiquitin_plusC_1in100_000001"]
-    fns = ["Ubiquitin_plusC_1in100_000001"]
-    compounds = base_path + "Compound Constraints/Compounds_CisOxTrans_nlp.xlsx"
 
-    for fn in fns:
-        bound = base_path + "Deconvoluted Spectra/" + fn + ".xlsx"
-        binding_sites = search(bound, compounds)
-        print(binding_sites)
+    compounds = "Data/Compound Constraints/Compounds_CisOxTrans_nlp.xlsx"
+    bound = "Data/Deconvoluted Spectra/Ubiquitin_plusC_1in100_000001.xlsx"
+
+    # compounds = "Data/Other Spectra/compounds_rc.xlsx"
+    # bound = "Data/Other Spectra/bound_spectrum_rc.xlsx"
+
+    binding_sites = search(bound, compounds)
+    print(binding_sites)
