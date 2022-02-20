@@ -7,14 +7,16 @@ from binding_site_search import search
 ALLOWED_EXTENSIONS = {'xlsx', 'csv'}
 
 path = os.path.dirname(os.path.abspath(__file__))
-# try:
-#     os.mkdir("uploads")
-# except FileExistsError:
-#     pass
 
-upload_path = os.path.join(path, "uploads")
+upload_path = os.path.join(os.path.dirname(path), "uploads")
 default_path = os.path.join(os.path.dirname(path), "example")
-download_path = os.path.join(path, "outputs")
+download_path = os.path.join(os.path.dirname(path), "outputs")
+
+try:
+    os.mkdir(upload_path)
+    os.mkdir(download_path)
+except FileExistsError:
+    pass
 
 def allowed_file(filename):
     '''
