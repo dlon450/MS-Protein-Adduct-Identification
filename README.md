@@ -6,7 +6,7 @@ To access the web app, run the src/app.py file.
 ```
 python src/app.py
 ```
-Otherwise, the algorithm can be run directly through src/binding_site_search.py (changing file directories accordingly). 
+Otherwise, the search can be run directly using src/binding_site_search.py (changing file directories accordingly). 
 ```
 python src/binding_site_search.py
 ```

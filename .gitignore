@@ -7,6 +7,7 @@ Data/
 *.pdf
 *.xlsx
 *.xy
+src/outputs/*
 
 #default python template
 
