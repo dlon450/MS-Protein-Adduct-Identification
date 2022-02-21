@@ -1,6 +1,8 @@
 # MS-Binding-Sites-Identification
 Identification of protein binding sites in deconvoluted mass spectrometry data by matching experimental peak distributions with potential isotope patterns.
 
+![GitHub](https://img.shields.io/github/license/dlon450/MS-Binding-Sites-Identification)
+
 ## Getting Started
 To access the web app, run the src/app.py file. 
 ```
