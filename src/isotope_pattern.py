@@ -1,4 +1,4 @@
-from pyopenms import EmpiricalFormula, CoarseIsotopePatternGenerator
+from pyopenms import *
 import numpy as np
 from matplotlib import pyplot as plt
 from icecream import ic
@@ -6,11 +6,27 @@ from scipy.spatial.distance import euclidean
 from fastdtw import fastdtw, dtw
 
 
-def average_mass(formula: object) -> float:
+def peak_isotope(formula: object) -> float:
     '''
     Use isotope pattern to find average mass
     '''
-    return np.dot(*find_isotope_pattern(formula))
+    seq_formula = EmpiricalFormula(formula)
+    isotopes = seq_formula.getIsotopeDistribution( FineIsotopePatternGenerator(1e-3) )
+    iso_dict = {}
+    for iso in isotopes.getContainer():
+        mz = iso.getMZ()
+        group = int(mz)
+        iso_dict[group] = iso_dict.get(group, []) + [(mz, iso.getIntensity())]
+
+    best_abundance = 0.
+    best_mass = 0.
+    for _, value in iso_dict.items():
+        abundance = sum([i for m,i in value])
+        if abundance > best_abundance:
+            best_mass = sum([ m*i for m,i in value]) / abundance
+            best_abundance = abundance
+
+    return best_mass
 
 
 def find_isotope_pattern(formula_str: str, generator_num=16, paired=False, plot_distribution=False):
@@ -180,9 +196,5 @@ def plotIsotopeDistribution(isotope_distribution, title="Isotope distribution"):
 
 if __name__ == "__main__":
 
-    formula = 'C378H630N105O118S1'
-    masses, rel_abundance = find_isotope_pattern(formula, generator_num=16, plot_distribution=True)
-    for mass, rel_adun in zip(masses, rel_abundance):
-        print("Isotope", mass, "has abundance", rel_adun, "%")
-
-    print(np.dot(masses, rel_abundance)/100)
+    formula = 'C378H629N105O118S1PtNH3NH3H2O'
+    print(peak_isotope(formula))

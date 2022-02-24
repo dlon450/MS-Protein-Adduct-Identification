@@ -38,19 +38,6 @@ def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks
     return peak_masses[keep], peaks_idx, keep
 
 
-def plot_peaks(bound_df: pd.DataFrame, peaks: pd.DataFrame, keep: np.array):
-    '''
-    Plot MS and label peaks
-    '''
-    plt.plot(bound_df['m/z'], bound_df['normalised_intensity'])
-    plt.plot(bound_df['m/z'][peaks], bound_df['normalised_intensity'][peaks], "x", label='Identified peaks')
-    plt.plot(bound_df['m/z'][peaks[keep]], bound_df['normalised_intensity'][peaks[keep]], "ko", markersize=3, label='Filtered peaks')
-    plt.xlabel('m/z')
-    plt.ylabel('Relative abundance')
-    plt.legend()
-    plt.show()
-
-
 def match_peaks(peak, binding_dict, bound_df, full=False):
     '''
     Match peaks to theoretical list
@@ -72,3 +59,16 @@ def match_peaks(peak, binding_dict, bound_df, full=False):
     if full:
         return pd.DataFrame(binding_site_record)
     return binding_site_record
+
+
+def plot_peaks(bound_df: pd.DataFrame, peaks: pd.DataFrame, keep: np.array):
+    '''
+    Plot MS and label peaks
+    '''
+    plt.plot(bound_df['m/z'], bound_df['normalised_intensity'])
+    plt.plot(bound_df['m/z'][peaks], bound_df['normalised_intensity'][peaks], "x", label='Identified peaks')
+    plt.plot(bound_df['m/z'][peaks[keep]], bound_df['normalised_intensity'][peaks[keep]], "ko", markersize=3, label='Filtered peaks')
+    plt.xlabel('m/z')
+    plt.ylabel('Relative abundance')
+    plt.legend()
+    plt.show()

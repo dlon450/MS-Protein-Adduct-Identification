@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from isotope_pattern import average_mass
+from isotope_pattern import peak_isotope
 import time
 from constraint_optimisation import feasible_set_search
 
@@ -16,7 +16,7 @@ def feasible_set_df(compounds, peaks_mass, tolerance, multi_protein=False, min_p
 
     formulas = compounds["Formula"].to_numpy()
     charges = compounds["Charge"].to_numpy()
-    masses = np.vectorize(average_mass)(formulas) - np.dot(PROTON_MASS, charges)
+    masses = np.vectorize(peak_isotope)(formulas) - np.dot(PROTON_MASS, charges)
 
     masses = (masses*factor).astype(int)
 

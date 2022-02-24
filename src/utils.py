@@ -1,4 +1,3 @@
-from sklearn.preprocessing import MinMaxScaler 
 import pandas as pd 
 import numpy as np
 
@@ -17,7 +16,6 @@ def read(bound_file_path, compounds_file_path):
 
 
 def normalise(spectrum):
-    sc = MinMaxScaler()
-    spectrum["normalised_intensity"] = sc.fit_transform(spectrum["I"].values.reshape(-1,1))
-
+    X = spectrum["I"].to_numpy()
+    spectrum["normalised_intensity"] = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     return spectrum

@@ -4,7 +4,7 @@ import numpy as np
 import time
 
 from utils import read
-from isotope_pattern import average_mass
+from isotope_pattern import peak_isotope
 
 PROTON_MASS = 1.007825
 
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     charges = compounds["Charge"].to_numpy()
     max_amount = compounds["Max"].to_numpy()
     min_amount = compounds["Min"].to_numpy()
-    masses = np.vectorize(average_mass)(formulas) - np.dot(PROTON_MASS, charges)
+    masses = np.vectorize(peak_isotope)(formulas) - np.dot(PROTON_MASS, charges)
 
     masses = (masses*100000).astype(int)
 

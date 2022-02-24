@@ -69,4 +69,4 @@ if __name__ == "__main__":
     # bound = "Data/Other Spectra/bound_spectrum_rc.xlsx"
 
     binding_sites = search(bound, compounds)
-    print(binding_sites)
+    print(binding_sites.head(10))

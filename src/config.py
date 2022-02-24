@@ -2,7 +2,7 @@
 tolerance = 2
 peak_height = 0.05
 multi_protein = 'off'
-only_best = 'on'
+only_best = 'off'
 min_primaries = 1
 max_primaries = 3
 
