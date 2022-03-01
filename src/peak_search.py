@@ -57,7 +57,7 @@ def match_peaks(peak, binding_dict, bound_df, full=False):
     
     print('Elapsed (seconds):', str((time.time()-start)))
     if full:
-        return pd.DataFrame(binding_site_record)
+        return pd.DataFrame(binding_site_record).sort_values(by=['Loss'])
     return binding_site_record
 
 

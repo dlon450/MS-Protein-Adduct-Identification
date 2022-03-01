@@ -14,8 +14,8 @@ def feasible_set_df(compounds, peaks_mass, tolerance, multi_protein=False, min_p
     factor = 10.**precision
     solution_dict = {}
 
-    formulas = compounds["Formula"].to_numpy()
-    charges = compounds["Charge"].to_numpy()
+    formulas = compounds["Formula/Sequence"].to_numpy()
+    charges = compounds["Charge of compound/fragment"].to_numpy()
     masses = np.vectorize(peak_isotope)(formulas) - np.dot(PROTON_MASS, charges)
 
     masses = (masses*factor).astype(int)
@@ -24,12 +24,12 @@ def feasible_set_df(compounds, peaks_mass, tolerance, multi_protein=False, min_p
     charges_dict = dict(zip(formulas, charges))
     max_amount_dict = dict(zip(formulas, compounds["Max"].to_numpy()))
     min_amount_dict = dict(zip(formulas, compounds["Min"].to_numpy()))
-    metal_idx = compounds.index[compounds['Metal'].notna()].tolist()[0]
-    max_per_metal = dict(zip(formulas, compounds['MPM'].to_numpy()))
+    metal_idx = compounds.index[compounds['Compound/Fragment Type'] == 'Metal'].tolist()[0]
+    max_per_metal = dict(zip(formulas, compounds['Maximum number of the corresponding ligand per metal'].to_numpy()))
 
     primaries_dict = None
     if multi_protein:
-        primaries_dict = dict(zip(formulas, compounds['Primaries'].notna().to_numpy()))
+        primaries_dict = dict(zip(formulas, compounds['Compound/Fragment Type'] == 'Protein'))
 
     print('Searching for solutions...')
     start = time.time()

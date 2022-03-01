@@ -40,9 +40,6 @@ def find_isotope_pattern(formula_str: str, generator_num=16, paired=False, plot_
     if plot_distribution:
         plotIsotopeDistribution(isotopes)
 
-    # isotope_peak = seq_formula.getMonoWeight()
-    # average_mass = seq_formula.getAverageWeight()
-
     return masses, rel_abundance
 
 
@@ -196,5 +193,6 @@ def plotIsotopeDistribution(isotope_distribution, title="Isotope distribution"):
 
 if __name__ == "__main__":
 
-    formula = 'C378H629N105O118S1PtNH3NH3H2O'
+    formula = 'Ir'
     print(peak_isotope(formula))
+    # print(peak_isotope('C378H629N105O118S1PtH2ONH3NH3') - 2*1.007825)

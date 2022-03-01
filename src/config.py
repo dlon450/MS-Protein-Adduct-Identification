@@ -12,3 +12,4 @@ SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 # filenames
 bound_filename = "bound_spectrum.xlsx"
 compounds_list_filename = "compounds.xlsx"
+adducts_filename = "adducts.xlsx"

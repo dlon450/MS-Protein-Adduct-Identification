@@ -41,6 +41,12 @@ def upload():
 
         uploaded_unbound = request.files['bound_file']
         uploaded_compound = request.files['compound_file']
+        uploaded_adducts = request.files['adducts_file']
+        if uploaded_adducts.filename == "":
+            adducts_file_path = os.path.join(default_path, config.adducts_filename)
+        else:
+            download_uploaded_file(config.adducts_filename, request, "adducts_file")
+            adducts_file_path = os.path.join(upload_path, config.adducts_filename)
 
         tolerance = request.form.get('tolerance')
         peak_height = request.form.get('peak_height')
@@ -62,7 +68,7 @@ def upload():
         bound_file_path = os.path.join(data_dir, config.bound_filename)
         compounds_file_path = os.path.join(data_dir, config.compounds_list_filename)
 
-        binding_site_df = search(bound_file_path, compounds_file_path, tolerance,\
+        binding_site_df = search(bound_file_path, compounds_file_path, adducts_file_path, tolerance,\
             peak_height, multi_protein, min_primaries, max_primaries, only_best)
         print(binding_site_df)
 

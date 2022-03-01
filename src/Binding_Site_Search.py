@@ -9,7 +9,7 @@ from feasible_set import feasible_set_df
 import time
 
 
-def search(bound_file_path, compounds_file_path, tolerance=config.tolerance, peak_height=config.peak_height,\
+def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=config.tolerance, peak_height=config.peak_height,\
         multi_protein=config.multi_protein, min_primaries=config.min_primaries, max_primaries=config.max_primaries,\
             only_best=config.only_best, plot_peak_graph=False):
     '''
@@ -28,7 +28,7 @@ def search(bound_file_path, compounds_file_path, tolerance=config.tolerance, pea
     print(f'\nCONFIGURATION: Tolerance={tolerance}, Peak_Height={peak_height}, Only_best={only_best}, Multi-protein={multi_protein}, n_primaries=[{min_primaries}, {max_primaries}]\n')
     full_data = only_best != 'on'
     multi_protein = multi_protein == 'on'
-    bound_df, compounds = read(bound_file_path, compounds_file_path)
+    bound_df, compounds = read(bound_file_path, compounds_file_path, adducts_file_path)
 
     bound_df = normalise(bound_df) # scale spectrums between 0 and 1
     peaks, peaks_idx, keep = peak_find(bound_df, float(peak_height)) # find peaks 
@@ -62,11 +62,13 @@ def search(bound_file_path, compounds_file_path, tolerance=config.tolerance, pea
 
 if __name__ == "__main__":
 
-    compounds = "Data/Compound Constraints/Compounds_CisOxTrans_nlp.xlsx"
+    compounds = "Data/Compound Constraints/Compounds_CisOxTrans_latest.xlsx"
+    adducts = "Data/Compound Constraints/Standard_Adducts.xlsx"
     bound = "Data/Deconvoluted Spectra/Ubiquitin_plusC_1in100_000001.xlsx"
 
     # compounds = "Data/Other Spectra/compounds_rc.xlsx"
     # bound = "Data/Other Spectra/bound_spectrum_rc.xlsx"
 
-    binding_sites = search(bound, compounds)
-    print(binding_sites.head(10))
+    binding_sites = search(bound, compounds, adducts)
+    pd.set_option("display.max_rows", None)
+    print(binding_sites)
