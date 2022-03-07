@@ -36,7 +36,8 @@ class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
 
 def feasible_set_search(compounds, compound_masses, compound_maximum, compound_minimum, \
         peak_mass: float, tolerance=4, multi_protein=False, primaries=None, min_primaries=None, \
-            max_primaries=None, metal_idx=None, max_per_metal=None):
+            max_primaries=None, metal_idx=None, max_per_metal=None, adducts=None, max_adducts=None, \
+                valence=None):
     '''
     Returns feasible integer solutions https://developers.google.com/optimization/cp/cp_solver#all_solutions
     '''
@@ -48,7 +49,7 @@ def feasible_set_search(compounds, compound_masses, compound_maximum, compound_m
     
     # Add multi-protein constraints
     if multi_protein:
-        z = [model.NewBoolVar('used_{c}') for c in compounds if primaries[c]]
+        z = [model.NewBoolVar('used_protein_{c}') for c in compounds if primaries[c]]
         j = 0
         for i, c in enumerate(compounds):
             if primaries[c]:
@@ -58,10 +59,23 @@ def feasible_set_search(compounds, compound_masses, compound_maximum, compound_m
         model.Add(sum(z) >= min_primaries)
         model.Add(sum(z) <= max_primaries)
 
+    # Maximum adducts in potential species
+    z2 = [model.NewBoolVar('used_adduct_{c}') for c in compounds if adducts[c]]
+    j = 0
+    for i, c in enumerate(compounds):
+        if adducts[c]:
+            model.Add(x[i] == 0).OnlyEnforceIf(z2[j].Not())
+            model.Add(x[i] > 0).OnlyEnforceIf(z2[j])
+            j += 1
+    model.Add(sum(z2) <= max_adducts)
+
     # Add ratio constraints (max per metal)
     for j, c in enumerate(compounds):
         if not np.isnan(max_per_metal[c]):
             model.Add(x[j] <= int(max_per_metal[c])*x[metal_idx])
+
+    # Valence
+    model.Add(sum([x[i] for i, c in enumerate(compounds) if not np.isnan(max_per_metal[c])]) <= valence*x[metal_idx])
 
     # Add min/max constraints
     model.Add(sum([x[i]*compound_masses[c] for i, c in enumerate(compounds)]) <= peak_mass + tolerance)

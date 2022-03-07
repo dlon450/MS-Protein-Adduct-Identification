@@ -3,8 +3,11 @@ tolerance = 2
 peak_height = 0.05
 multi_protein = 'off'
 only_best = 'off'
+calibrate = 'on'
 min_primaries = 1
 max_primaries = 3
+max_adducts = 2
+valence = 3
 
 # subscript formatting for strings
 SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")

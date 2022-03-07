@@ -34,12 +34,18 @@
 				</div>
       </div>
       <br> </br>
-      Tolerance: <input type="number" step="0.5" name="tolerance" value=2.0><br></br>
-      Peak Height: <input type="number" step="0.01" name="peak_height" value=0.05><br></br>
-      <input type="checkbox" name="onlybest"> Only best<br>
-      <input type="checkbox" name="multiprotein"> Multi-protein 
+      <h3> Peak Search </h3>
+      Tolerance: <input type="number" step="0.1" name="tolerance" value=2.1><br>
+      Peak height: <input type="number" step="0.01" name="peak_height" value=0.05><br>
+      Minimum peak distance: <input type="number" step="0.1" name="min_dist_between_peaks" value=5.0><br>
+      <input type="checkbox" name="calibrate" checked> Calibrate<br></br>
+      <h3> Feasible Set </h3>
+      Maximum adducts: <input type="number" step="1" name="max_adducts" value=2><br>
+      Metal Valence: <input type="number" step="1" name="valence" value=3><br>
+      <input type="checkbox" name="multiprotein"> Multi-protein
       (minimum primaries: <input type="number" step="1" name="min_primaries" value=1>,
-      maximum primaries: <input type="number" step="1" name="max_primaries" value=2>)
+      maximum primaries: <input type="number" step="1" name="max_primaries" value=2>)<br>
+      <input type="checkbox" name="onlybest"> Only best
       <br> </br>
 			<button type="submit"
 				class="btn btn-primary btn-block">Submit</button>

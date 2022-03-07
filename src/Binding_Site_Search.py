@@ -11,7 +11,8 @@ import time
 
 def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=config.tolerance, peak_height=config.peak_height,\
         multi_protein=config.multi_protein, min_primaries=config.min_primaries, max_primaries=config.max_primaries,\
-            only_best=config.only_best, plot_peak_graph=False):
+            max_adducts=config.max_adducts, valence=config.valence, only_best=config.only_best, min_dist_between_peaks=5., \
+                calibrate=config.calibrate, plot_peak_graph=False):
     '''
     Search for appropriate binding sites
 
@@ -28,11 +29,14 @@ def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=co
     print(f'\nCONFIGURATION: Tolerance={tolerance}, Peak_Height={peak_height}, Only_best={only_best}, Multi-protein={multi_protein}, n_primaries=[{min_primaries}, {max_primaries}]\n')
     full_data = only_best != 'on'
     multi_protein = multi_protein == 'on'
+    calibrate = calibrate == 'on'
     bound_df, compounds = read(bound_file_path, compounds_file_path, adducts_file_path)
 
     bound_df = normalise(bound_df) # scale spectrums between 0 and 1
-    peaks, peaks_idx, keep = peak_find(bound_df, float(peak_height)) # find peaks 
-    binding_dicts = feasible_set_df(compounds, peaks, float(tolerance), multi_protein, int(min_primaries), int(max_primaries)) # feasible set of integer combinations
+    protein_str = compounds[compounds['Compound/Fragment Type'] == 'Protein']['Formula'].to_numpy()[0]
+    peaks, peaks_idx, keep = peak_find(bound_df, float(peak_height), float(min_dist_between_peaks), calibrate, protein_str) # find peaks 
+    binding_dicts = feasible_set_df(compounds, peaks, float(tolerance), multi_protein, \
+        int(min_primaries), int(max_primaries), int(max_adducts), int(valence)) # feasible set of integer combinations
 
     # calculate objectives of solns
     print('\nFinding loss...')
@@ -53,11 +57,13 @@ def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=co
         binding_sites_df = pd.concat(best_compounds)
     else:
         binding_sites_df = pd.DataFrame(best_compounds)
-    binding_sites_df['Compound'] = [' + '.join(cmpd) for cmpd in binding_sites_df['Compound']]
+    binding_sites_df['Species'] = [' + '.join(cmpd) for cmpd in binding_sites_df['Species']]
 
     if plot_peak_graph:
         plot_peaks(bound_df, peaks_idx, keep)
-    return binding_sites_df
+    return binding_sites_df[[
+        'Species', 'Proton Offset', 'Intensity', 'Theoretical Peak Mass', 'Experimental Peak',
+        'ppm', 'Closeness of Fit (Loss)', 'Closest Fit']]
 
 
 if __name__ == "__main__":
@@ -65,10 +71,8 @@ if __name__ == "__main__":
     compounds = "Data/Compound Constraints/Compounds_CisOxTrans_latest.xlsx"
     adducts = "Data/Compound Constraints/Standard_Adducts.xlsx"
     bound = "Data/Deconvoluted Spectra/Ubiquitin_plusC_1in100_000001.xlsx"
-
-    # compounds = "Data/Other Spectra/compounds_rc.xlsx"
-    # bound = "Data/Other Spectra/bound_spectrum_rc.xlsx"
-
+    
     binding_sites = search(bound, compounds, adducts)
-    pd.set_option("display.max_rows", None)
+    # pd.set_option("display.max_rows", None)
     print(binding_sites)
+    # binding_sites.to_csv('Data/cristian_data_1.xlsx', index=False)

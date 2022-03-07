@@ -53,6 +53,10 @@ def upload():
         multi_protein = request.form.get('multiprotein')
         min_primaries = request.form.get('min_primaries')
         max_primaries = request.form.get('max_primaries')
+        max_adducts = request.form.get('max_adducts')
+        valence = request.form.get('valence')
+        min_dist_between_peaks = request.form.get('min_dist_between_peaks')
+        calibrate = request.form.get('calibrate')
         only_best = request.form.get('onlybest')
 
         default, data_dir = check_uploaded_files(uploaded_unbound.filename, uploaded_compound.filename, analysis_complete)
@@ -68,8 +72,9 @@ def upload():
         bound_file_path = os.path.join(data_dir, config.bound_filename)
         compounds_file_path = os.path.join(data_dir, config.compounds_list_filename)
 
-        binding_site_df = search(bound_file_path, compounds_file_path, adducts_file_path, tolerance,\
-            peak_height, multi_protein, min_primaries, max_primaries, only_best)
+        binding_site_df = search(bound_file_path, compounds_file_path, adducts_file_path, tolerance, \
+            peak_height, multi_protein, min_primaries, max_primaries, max_adducts, valence, only_best, \
+                min_dist_between_peaks, calibrate)
         print(binding_site_df)
 
         # download

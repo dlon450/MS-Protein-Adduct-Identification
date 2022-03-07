@@ -13,7 +13,8 @@ def read(bound_file_path, compounds_file_path, adducts_file_path):
     compounds_df = pd.read_excel(compounds_file_path)
     adducts_df = pd.read_excel(adducts_file_path)
     adducts_df = adducts_df[adducts_df['Formula'] != 'H']
-    adducts_df.columns = ['Compound/Fragment', 'Formula/Sequence', 'Min', 'Max', 'Charge of compound/fragment']
+    adducts_df.columns = ['Compound/Fragment', 'Formula', 'Min', 'Max', 'Charge of compound/fragment']
+    adducts_df['Compound/Fragment Type'] = 'Adducts'
     all_compounds = pd.concat([compounds_df, adducts_df], ignore_index=True, sort=False)
 
     return bound_df, all_compounds

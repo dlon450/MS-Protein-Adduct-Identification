@@ -8,7 +8,7 @@ from isotope_pattern import *
 import time
 
 
-def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks=5.):
+def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks=5., calibrate=True, protein='C378H629N105O118S1'):
     '''
     Find distinct peaks above 'peak_height' (default 0.05) intensity 
     '''
@@ -35,7 +35,17 @@ def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks
             max_I = peak_I[i]
     keep[k] = True
 
+    if calibrate:
+        shift = calibration_shift(peak_masses[keep], protein_formula=protein)
+        bound_df['m/z'] += shift
+        peak_masses += shift
+
     return peak_masses[keep], peaks_idx, keep
+
+
+def calibration_shift(peaks, protein_formula):
+    protein_peak = peak_isotope(protein_formula)
+    return protein_peak - min(peaks, key=lambda x:abs(x-protein_peak))
 
 
 def match_peaks(peak, binding_dict, bound_df, full=False):
@@ -44,20 +54,20 @@ def match_peaks(peak, binding_dict, bound_df, full=False):
     '''
     start = time.time()
     # make new columns in binding_dict
-    n_solns = len(binding_dict['Mass'])
-    binding_dict['Peak'] = [peak]*n_solns
-    binding_dict['Loss'] = [-1]*n_solns
-    binding_dict['Best'] = [False]*n_solns
+    n_solns = len(binding_dict['Theoretical Peak Mass'])
+    binding_dict['Experimental Peak'] = [peak]*n_solns
+    binding_dict['Closeness of Fit (Loss)'] = [-1]*n_solns
+    binding_dict['Closest Fit'] = [False]*n_solns
 
     # intensities f()
     find_intensities = interpolate.interp1d(bound_df['m/z'].to_numpy(), bound_df['I'].to_numpy(), kind='linear')
 
     binding_site_record = calculate_score_no_interpolation(peak, binding_dict, bound_df, full) #  allocate DTW scores with no interpolation
-    binding_site_record['Intensity'] = find_intensities(binding_site_record['Mass'])
+    binding_site_record['Intensity'] = find_intensities(binding_site_record['Theoretical Peak Mass'])
     
     print('Elapsed (seconds):', str((time.time()-start)))
     if full:
-        return pd.DataFrame(binding_site_record).sort_values(by=['Loss'])
+        return pd.DataFrame(binding_site_record).sort_values(by=['Closeness of Fit (Loss)'])
     return binding_site_record
 
 
