@@ -1,12 +1,10 @@
 from ortools.sat.python import cp_model
-from isotope_pattern import objective_func
 import numpy as np
 import time
-
 from utils import read
 from isotope_pattern import peak_isotope
 
-PROTON_MASS = 1.007825
+PROTON_MASS = 1.0078250319
 
 
 class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):

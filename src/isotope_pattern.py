@@ -156,23 +156,26 @@ def plotWarpDTW(x1, x2, warp_path):
     fig.show()
 
 
-def plotIsotopeDistribution(isotope_distribution, title="Isotope distribution"):
+def plotIsotopeDistribution(isotopes, formula, save=False):
     '''
     Plot Isotope Distribution (https://pyopenms.readthedocs.io/en/latest/aasequences.html)
     '''
-    plt.title(title)
-    distribution = {"mass": [], "abundance": []}
-    for iso in isotope_distribution.getContainer():
-        distribution["mass"].append(iso.getMZ())
-        distribution["abundance"].append(iso.getIntensity() * 100)
-
-    bars = plt.bar(distribution["mass"], distribution["abundance"], width=0.05, snap=False) # snap ensures that all bars are rendered
-
-    # plt.ylim([0, 110])
-    # plt.xticks(range(math.ceil(distribution["mass"][0]) - 2,
-    #                  math.ceil(distribution["mass"][-1]) + 2))
+    xs = isotopes[0]
+    ys = (np.array(isotopes[1]) - min(isotopes[1]))/(max(isotopes[1]) - min(isotopes[1]))
+    
+    plt.bar(xs, ys, width=0.05, snap=False)
     plt.xlabel("Atomic mass (u)")
     plt.ylabel("Relative abundance (%)")
+    plt.ylim([0, 1.2])
+    plt.title(f'{formula} Isotope Distribution')
+
+    for x,y in zip(xs,ys):
+        if y >= 0.01:
+            label = "{:.4f}".format(y)
+            plt.annotate(label, (x,y), textcoords="offset points", xytext=(0,10), ha='center')
+
+    if save:
+        plt.savefig(f'Data/{formula}_isotope_pattern.png')
     plt.show()
 
 
@@ -194,16 +197,7 @@ def missing_elements(fn=r'C:\Users\longd\Downloads\List of elements.csv'):
 
 if __name__ == "__main__":
 
-    # seq_formula = EmpiricalFormula(formula_str)
-    # isotopes = seq_formula.getIsotopeDistribution( CoarseIsotopePatternGenerator(generator_num) )
-    # masses, rel_abundance = zip(*[(iso.getMZ(), iso.getIntensity()) for iso in isotopes.getContainer()])
-    
-    # if plot_distribution:
-    #     plotIsotopeDistribution(isotopes)
-
-    start = time.time()
-    formula = 'C378H643Cl2N111O118Pt3S'
-    formula = 'H'
-    [print(peak_isotope(formula)) for _ in range(1)]
-    print('Elapsed (seconds):', str((time.time()-start)))
-    # print(peak_isotope('C378H629N105O118S1PtH2ONH3NH3') - 2*1.007825)
+    formula = 'C613H951N193O185S10Pt'
+    isotopes = find_isotope_pattern(formula)
+    plt.rcParams["figure.figsize"] = (20,10)
+    plotIsotopeDistribution(isotopes, formula, True)

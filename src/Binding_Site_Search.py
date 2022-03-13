@@ -1,12 +1,13 @@
 import pandas as pd 
 import numpy as np
-
+import time
 import config
+
 from utils import *
 from peak_search import *
 from feasible_set import feasible_set_df
-
-import time
+from os import listdir
+from os.path import isfile, join
 
 
 def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=config.tolerance, peak_height=config.peak_height,\
@@ -66,13 +67,25 @@ def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=co
         'ppm', 'Closeness of Fit (Loss)', 'Closest Fit']]
 
 
+def search_all(dirpath, compounds_file, adducts_file):
+
+    calibrated = '_softwareCal' if config.calibrate == 'on' else '_noSWCal'
+    bound_files = [f for f in listdir(dirpath) if isfile(join(dirpath, f))]
+    for bound_fn in bound_files:
+        binding_sites = search(join(dirpath, bound_fn), compounds_file, adducts_file)
+        output_fn = bound_fn[:bound_fn.rfind('.')] + f'{calibrated}.csv'
+        binding_sites.to_csv(join(dirpath, output_fn), index=False)
+
+
 if __name__ == "__main__":
 
     compounds = "Data/Compound Constraints/Compounds_CisOxTrans_latest.xlsx"
     adducts = "Data/Compound Constraints/Standard_Adducts.xlsx"
     bound = "Data/Deconvoluted Spectra/Ubiquitin_plusC_1in100_000001.xlsx"
     
-    binding_sites = search(bound, compounds, adducts)
+    # binding_sites = search(bound, compounds, adducts)
     # pd.set_option("display.max_rows", None)
-    print(binding_sites)
+    # print(binding_sites)
     # binding_sites.to_csv('Data/cristian_data_1.xlsx', index=False)
+
+    search_all('Data/Deconvoluted Spectra', compounds, adducts)
