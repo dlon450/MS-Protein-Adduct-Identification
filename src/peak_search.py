@@ -8,7 +8,7 @@ from isotope_pattern import *
 import time
 
 
-def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks=5., calibrate=True, protein='C378H629N105O118S1'):
+def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks=3., calibrate=True, protein='C378H629N105O118S1'):
     '''
     Find distinct peaks above 'peak_height' (default 0.05) intensity 
     '''
@@ -24,7 +24,7 @@ def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks
     k = 0
     max_I = peak_I[k]
     for i in range(1, n):
-        if peak_masses[i] - peak_masses[i-1] <= min_dist_between_peaks:
+        if peak_masses[i] - peak_masses[i-1] <= 3.:
             current_I = peak_I[i]
             if current_I > max_I:
                 max_I = current_I
@@ -60,7 +60,7 @@ def match_peaks(peak, binding_dict, bound_df, full=False):
     binding_dict['Closest Fit'] = [False]*n_solns
 
     # intensities f()
-    find_intensities = interpolate.interp1d(bound_df['m/z'].to_numpy(), bound_df['I'].to_numpy(), kind='linear')
+    find_intensities = interpolate.interp1d(bound_df['m/z'].to_numpy(), bound_df['normalised_intensity'].to_numpy(), kind='linear')
 
     binding_site_record = calculate_score_no_interpolation(peak, binding_dict, bound_df, full) #  allocate DTW scores with no interpolation
     binding_site_record['Intensity'] = find_intensities(binding_site_record['Theoretical Peak Mass'])

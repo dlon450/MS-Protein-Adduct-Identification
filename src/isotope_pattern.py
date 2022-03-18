@@ -6,6 +6,8 @@ from scipy.spatial.distance import euclidean
 from fastdtw import fastdtw, dtw
 import time
 
+PROTON_MASS = 1.0078250319
+
 
 def peak_isotope(formula: object) -> float:
     '''
@@ -37,7 +39,7 @@ def find_nominal_masses(formula_str: str):
     return iso_dict
 
 
-def find_isotope_pattern(formula_str: str, generator_num=16, paired=False, plot_distribution=False):
+def find_isotope_pattern(formula_str: str):
     '''
     Return theoretical distribution of intensities
     '''
@@ -63,20 +65,24 @@ def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=Fal
     '''
     # find sites by matching
     binding_site_record = dict.fromkeys(binding_dict.keys())
-
+    binding_dict['Theoretical Peak Mass'] = list(binding_dict['Theoretical Peak Mass'])
+    
     exp_masses = bound_df['m/z'].to_numpy()
     exp_abundance = bound_df['I'].to_numpy()
-
-    number_of_points = 16
     peak_compounds = binding_dict['Species']
+    proton_offset = binding_dict['Proton Offset']
 
     best_idx = 0
     best_distance = np.inf
 
     for i, compound_list in enumerate(peak_compounds):
         
-        distance = objective_func(''.join(compound_list), exp_masses, exp_abundance, peak_mass, number_of_points)
+        distance, isotope_peak_mass = objective_func(''.join(compound_list), exp_masses, exp_abundance, peak_mass, proton_offset[i])
         binding_dict['Closeness of Fit (Loss)'][i] = distance
+
+        theoretical_peak_mass = isotope_peak_mass - proton_offset[i] * PROTON_MASS
+        binding_dict['Theoretical Peak Mass'][i] = theoretical_peak_mass
+        binding_dict['ppm'][i] = abs(theoretical_peak_mass - peak_mass) / theoretical_peak_mass * 1000000 
 
         if distance < best_distance:
             best_distance = distance
@@ -92,28 +98,30 @@ def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=Fal
     return binding_site_record
 
 
-def objective_func(formula, exp_masses, exp_abundance, peak_mass, number_of_points):
+def objective_func(formula, exp_masses, exp_abundance, peak_mass, proton_offset):
     '''
     Returns the DTW loss
     '''
     if formula == '':
         return 99999
 
-    masses, x = find_isotope_pattern(formula, number_of_points)
-    isotope_peak = masses[maxInBitonic(x, 0, number_of_points - 1)]
+    masses, x = find_isotope_pattern(formula)
+    # masses = masses - proton_offset * PROTON_MASS
+    max_idx_x = maxInBitonic(x, 0, len(x) - 1)
+    isotope_peak = masses[max_idx_x]
     difference = peak_mass - isotope_peak
     
     start = exp_masses.searchsorted(difference + masses[0])
     stop = exp_masses.searchsorted(difference + masses[-1], side='right')
 
     y = exp_abundance[start:stop]
-    y = y / y.sum()
-    # distance, _ = dtw(x, y, dist=None)
-
     m = exp_masses[start:stop]
-    distance, _ = fastdtw(list(zip(masses, x)), list(zip(m, y)), dist=euclidean)
+    y = y / y[m.searchsorted(peak_mass)]
+    # y = y / y.sum()
 
-    return distance
+    distance, _ = fastdtw(list(zip(masses, np.array(x) / x[max_idx_x])), list(zip(m, y)), dist=euclidean)
+
+    return distance, isotope_peak
 
 
 def maxInBitonic(arr, l, r) :
@@ -197,7 +205,7 @@ def missing_elements(fn=r'C:\Users\longd\Downloads\List of elements.csv'):
 
 if __name__ == "__main__":
 
-    formula = 'C613H951N193O185S10Pt'
+    formula = 'C378H629N105O118S1PtNH3NH3Cl'
     isotopes = find_isotope_pattern(formula)
     plt.rcParams["figure.figsize"] = (20,10)
     plotIsotopeDistribution(isotopes, formula, True)

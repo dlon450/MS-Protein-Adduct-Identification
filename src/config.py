@@ -1,6 +1,6 @@
 # config constraints 
 tolerance = 2.1
-peak_height = 0.01
+peak_height = 0.1
 multi_protein = 'off'
 only_best = 'off'
 calibrate = 'off'

@@ -3,3 +3,4 @@ outputs/
 uploads/
 __pycache__/
 .vscode/
+test_output.csv

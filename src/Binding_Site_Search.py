@@ -81,11 +81,11 @@ if __name__ == "__main__":
 
     compounds = "Data/Compound Constraints/Compounds_CisOxTrans_latest.xlsx"
     adducts = "Data/Compound Constraints/Standard_Adducts.xlsx"
-    bound = "Data/Deconvoluted Spectra/Ubiquitin_plusC_1in100_000001.xlsx"
+    bound = "Data/Deconvoluted Spectra/uc_medres_precal.xlsx"
     
-    # binding_sites = search(bound, compounds, adducts)
-    # pd.set_option("display.max_rows", None)
-    # print(binding_sites)
-    # binding_sites.to_csv('Data/cristian_data_1.xlsx', index=False)
+    binding_sites = search(bound, compounds, adducts)
+    # pd.set_option("display.max_rows", None, "display.max_columns", None)
+    print(binding_sites)
+    binding_sites.to_csv('test_output.csv', index=False)
 
-    search_all('Data/Deconvoluted Spectra', compounds, adducts)
+    # search_all('Data/Deconvoluted Spectra', compounds, adducts)
