@@ -27,7 +27,7 @@ def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=co
     -------
     binding_sites_df: pd.DataFrame
     '''
-    print(f'\nCONFIGURATION: Tolerance={tolerance}, Peak_Height={peak_height}, Only_best={only_best}, Multi-protein={multi_protein}, n_primaries=[{min_primaries}, {max_primaries}]\n')
+    print(f'\nCONFIGURATION: Tolerance={tolerance}, Peak_Height={peak_height}, Multi-protein={multi_protein}, Calibrate={calibrate}\n')
     full_data = only_best != 'on'
     multi_protein = multi_protein == 'on'
     calibrate = calibrate == 'on'
@@ -36,6 +36,9 @@ def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=co
     bound_df = normalise(bound_df) # scale spectrums between 0 and 1
     protein_str = compounds[compounds['Compound/Fragment Type'] == 'Protein']['Formula'].to_numpy()[0]
     peaks, peaks_idx, keep = peak_find(bound_df, float(peak_height), float(min_dist_between_peaks), calibrate, protein_str) # find peaks 
+    if plot_peak_graph:
+        plot_peaks(bound_df, peaks_idx, keep)
+
     binding_dicts = feasible_set_df(compounds, peaks, float(tolerance), multi_protein, \
         int(min_primaries), int(max_primaries), int(max_adducts), int(valence)) # feasible set of integer combinations
 
@@ -60,8 +63,6 @@ def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=co
         binding_sites_df = pd.DataFrame(best_compounds)
     binding_sites_df['Species'] = [' + '.join(cmpd) for cmpd in binding_sites_df['Species']]
 
-    if plot_peak_graph:
-        plot_peaks(bound_df, peaks_idx, keep)
     return binding_sites_df[[
         'Species', 'Proton Offset', 'Intensity', 'Theoretical Peak Mass', 'Experimental Peak',
         'ppm', 'Closeness of Fit (Loss)', 'Closest Fit']]
@@ -81,11 +82,11 @@ if __name__ == "__main__":
 
     compounds = "Data/Compound Constraints/Compounds_CisOxTrans_latest.xlsx"
     adducts = "Data/Compound Constraints/Standard_Adducts.xlsx"
-    bound = "Data/Deconvoluted Spectra/uc_medres_precal.xlsx"
+    bound = "Data/Deconvoluted Spectra/uc_christian.xlsx"
     
-    binding_sites = search(bound, compounds, adducts)
+    # binding_sites = search(bound, compounds, adducts)
     # pd.set_option("display.max_rows", None, "display.max_columns", None)
-    print(binding_sites)
-    binding_sites.to_csv('test_output.csv', index=False)
+    # print(binding_sites)
+    # binding_sites.to_csv('test_output.csv', index=False)
 
-    # search_all('Data/Deconvoluted Spectra', compounds, adducts)
+    search_all('Data/Deconvoluted Spectra', compounds, adducts)

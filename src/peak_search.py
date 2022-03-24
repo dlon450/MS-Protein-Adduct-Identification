@@ -71,14 +71,19 @@ def match_peaks(peak, binding_dict, bound_df, full=False):
     return binding_site_record
 
 
-def plot_peaks(bound_df: pd.DataFrame, peaks: pd.DataFrame, keep: np.array):
+def plot_peaks(bound_df: pd.DataFrame, peaks: pd.DataFrame, keep: np.array, raw_MS=True):
     '''
     Plot MS and label peaks
     '''
-    plt.plot(bound_df['m/z'], bound_df['normalised_intensity'])
-    plt.plot(bound_df['m/z'][peaks], bound_df['normalised_intensity'][peaks], "x", label='Identified peaks')
-    plt.plot(bound_df['m/z'][peaks[keep]], bound_df['normalised_intensity'][peaks[keep]], "ko", markersize=3, label='Filtered peaks')
-    plt.xlabel('m/z')
-    plt.ylabel('Relative abundance')
+    if raw_MS:
+        plt.plot(bound_df['m/z'], bound_df['I'])
+        plt.ylabel('Intensity')
+    else:
+        plt.plot(bound_df['m/z'], bound_df['normalised_intensity'])
+        plt.plot(bound_df['m/z'][peaks], bound_df['normalised_intensity'][peaks], "x", label='Identified peaks')
+        plt.plot(bound_df['m/z'][peaks[keep]], bound_df['normalised_intensity'][peaks[keep]], "ko", markersize=3, label='Filtered peaks')
+        plt.ylabel('Relative abundance')
+
+    plt.xlabel('m')
     plt.legend()
     plt.show()

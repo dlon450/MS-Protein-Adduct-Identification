@@ -69,6 +69,8 @@ def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=Fal
     
     exp_masses = bound_df['m/z'].to_numpy()
     exp_abundance = bound_df['I'].to_numpy()
+    exp_abundance = exp_abundance / exp_abundance[exp_masses.searchsorted(peak_mass)]
+    keep = np.where(np.logical_and(exp_abundance > 0.1, exp_abundance < 1.001))
     peak_compounds = binding_dict['Species']
     proton_offset = binding_dict['Proton Offset']
 
@@ -77,10 +79,11 @@ def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=Fal
 
     for i, compound_list in enumerate(peak_compounds):
         
-        distance, isotope_peak_mass = objective_func(''.join(compound_list), exp_masses, exp_abundance, peak_mass, proton_offset[i])
+        distance, isotope_peak_mass = objective_func(''.join(compound_list), \
+            exp_masses[keep], exp_abundance[keep], peak_mass, proton_offset[i])
         binding_dict['Closeness of Fit (Loss)'][i] = distance
 
-        theoretical_peak_mass = isotope_peak_mass - proton_offset[i] * PROTON_MASS
+        theoretical_peak_mass = isotope_peak_mass # - proton_offset[i] * PROTON_MASS
         binding_dict['Theoretical Peak Mass'][i] = theoretical_peak_mass
         binding_dict['ppm'][i] = abs(theoretical_peak_mass - peak_mass) / theoretical_peak_mass * 1000000 
 
@@ -98,15 +101,14 @@ def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=Fal
     return binding_site_record
 
 
-def objective_func(formula, exp_masses, exp_abundance, peak_mass, proton_offset):
+def objective_func(formula, exp_masses, exp_abundance, peak_mass, proton_offset, weight=100.):
     '''
     Returns the DTW loss
     '''
     if formula == '':
         return 99999
 
-    masses, x = find_isotope_pattern(formula)
-    # masses = masses - proton_offset * PROTON_MASS
+    masses, x = find_isotope_pattern(f'{formula}H-{proton_offset}')
     max_idx_x = maxInBitonic(x, 0, len(x) - 1)
     isotope_peak = masses[max_idx_x]
     difference = peak_mass - isotope_peak
@@ -116,12 +118,12 @@ def objective_func(formula, exp_masses, exp_abundance, peak_mass, proton_offset)
 
     y = exp_abundance[start:stop]
     m = exp_masses[start:stop]
-    y = y / y[m.searchsorted(peak_mass)]
-    # y = y / y.sum()
 
-    distance, _ = fastdtw(list(zip(masses, np.array(x) / x[max_idx_x])), list(zip(m, y)), dist=euclidean)
-
-    return distance, isotope_peak
+    distance, _ = fastdtw(list(zip(masses, np.array(x) / x[max_idx_x] * weight)), list(zip(m, y * weight)), dist=euclidean)
+    plt.plot(m, y * weight)
+    plt.plot(masses, np.array(x) * weight / x[max_idx_x])
+    plt.clf()
+    return distance / weight, isotope_peak
 
 
 def maxInBitonic(arr, l, r) :
