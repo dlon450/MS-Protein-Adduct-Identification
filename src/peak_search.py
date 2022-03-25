@@ -48,7 +48,7 @@ def calibration_shift(peaks, protein_formula):
     return protein_peak - min(peaks, key=lambda x:abs(x-protein_peak))
 
 
-def match_peaks(peak, binding_dict, bound_df, full=False):
+def match_peaks(peak, binding_dict, bound_df, full=False, weight=10.):
     '''
     Match peaks to theoretical list
     '''
@@ -62,7 +62,7 @@ def match_peaks(peak, binding_dict, bound_df, full=False):
     # intensities f()
     find_intensities = interpolate.interp1d(bound_df['m/z'].to_numpy(), bound_df['normalised_intensity'].to_numpy(), kind='linear')
 
-    binding_site_record = calculate_score_no_interpolation(peak, binding_dict, bound_df, full) #  allocate DTW scores with no interpolation
+    binding_site_record = calculate_score_no_interpolation(peak, binding_dict, bound_df, full, weight) #  allocate DTW scores with no interpolation
     binding_site_record['Intensity'] = find_intensities(binding_site_record['Theoretical Peak Mass'])
     
     print('Elapsed (seconds):', str((time.time()-start)))

@@ -1,5 +1,6 @@
 from pyopenms import *
 import numpy as np
+import similaritymeasures
 from matplotlib import pyplot as plt
 from icecream import ic
 from scipy.spatial.distance import euclidean
@@ -59,7 +60,7 @@ def find_isotope_pattern(formula_str: str):
     return masses, rel_abundance
         
 
-def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=False):
+def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=False, weight=10.):
     '''
     Return the compounds that best match the experimental distribution
     '''
@@ -68,9 +69,15 @@ def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=Fal
     binding_dict['Theoretical Peak Mass'] = list(binding_dict['Theoretical Peak Mass'])
     
     exp_masses = bound_df['m/z'].to_numpy()
+    p = exp_masses.searchsorted(peak_mass)
+    start = exp_masses.searchsorted(peak_mass - 6.)
+    stop = exp_masses.searchsorted(peak_mass + 6.)
+    exp_masses = exp_masses[start:stop]
+    
     exp_abundance = bound_df['I'].to_numpy()
-    exp_abundance = exp_abundance / exp_abundance[exp_masses.searchsorted(peak_mass)]
-    keep = np.where(np.logical_and(exp_abundance > 0.1, exp_abundance < 1.001))
+    exp_abundance = (exp_abundance / exp_abundance[p])[start:stop]
+    keep = np.where(np.logical_and(exp_abundance > 0.15, exp_abundance < 1.001))
+    
     peak_compounds = binding_dict['Species']
     proton_offset = binding_dict['Proton Offset']
 
@@ -80,7 +87,7 @@ def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=Fal
     for i, compound_list in enumerate(peak_compounds):
         
         distance, isotope_peak_mass = objective_func(''.join(compound_list), \
-            exp_masses[keep], exp_abundance[keep], peak_mass, proton_offset[i])
+            exp_masses[keep], exp_abundance[keep], peak_mass, proton_offset[i], weight)
         binding_dict['Closeness of Fit (Loss)'][i] = distance
 
         theoretical_peak_mass = isotope_peak_mass # - proton_offset[i] * PROTON_MASS
@@ -101,7 +108,7 @@ def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=Fal
     return binding_site_record
 
 
-def objective_func(formula, exp_masses, exp_abundance, peak_mass, proton_offset, weight=100.):
+def objective_func(formula, m, y, peak_mass, proton_offset, weight=1.):
     '''
     Returns the DTW loss
     '''
@@ -111,18 +118,18 @@ def objective_func(formula, exp_masses, exp_abundance, peak_mass, proton_offset,
     masses, x = find_isotope_pattern(f'{formula}H-{proton_offset}')
     max_idx_x = maxInBitonic(x, 0, len(x) - 1)
     isotope_peak = masses[max_idx_x]
-    difference = peak_mass - isotope_peak
-    
-    start = exp_masses.searchsorted(difference + masses[0])
-    stop = exp_masses.searchsorted(difference + masses[-1], side='right')
 
-    y = exp_abundance[start:stop]
-    m = exp_masses[start:stop]
+    # distance, _ = fastdtw(list(zip(masses, np.array(x) / x[max_idx_x] * weight)), list(zip(m, y * weight)), dist=euclidean)
+    distance = similaritymeasures.frechet_dist(list(zip(masses, np.array(x) / x[max_idx_x] * weight)), list(zip(m, y * weight)))
+    # distance = similaritymeasures.area_between_two_curves(np.array(list(zip(m, y * weight))), np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))))
+    # distance = similaritymeasures.dtw(np.array(list(zip(m, y * weight))), np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))), metric='euclidean')
+    # distance = similaritymeasures.pcm(np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))), np.array(list(zip(m, y * weight))))
 
-    distance, _ = fastdtw(list(zip(masses, np.array(x) / x[max_idx_x] * weight)), list(zip(m, y * weight)), dist=euclidean)
-    plt.plot(m, y * weight)
-    plt.plot(masses, np.array(x) * weight / x[max_idx_x])
-    plt.clf()
+    # plt.plot(m, y * weight)
+    # plt.plot(masses, np.array(x) * weight / x[max_idx_x])
+    # plt.savefig(f'isotope_matches/{peak_mass}_{formula}_{distance}.png')
+    # plt.clf()
+
     return distance / weight, isotope_peak
 
 

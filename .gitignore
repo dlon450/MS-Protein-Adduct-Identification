@@ -3,4 +3,5 @@ outputs/
 uploads/
 __pycache__/
 .vscode/
-test_output.csv
+test_output*.csv
+isotope_matches/

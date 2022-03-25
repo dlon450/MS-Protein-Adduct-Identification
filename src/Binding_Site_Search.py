@@ -1,3 +1,4 @@
+from wsgiref import validate
 import pandas as pd 
 import numpy as np
 import time
@@ -13,7 +14,7 @@ from os.path import isfile, join
 def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=config.tolerance, peak_height=config.peak_height,\
         multi_protein=config.multi_protein, min_primaries=config.min_primaries, max_primaries=config.max_primaries,\
             max_adducts=config.max_adducts, valence=config.valence, only_best=config.only_best, min_dist_between_peaks=5., \
-                calibrate=config.calibrate, plot_peak_graph=False):
+                calibrate=config.calibrate, plot_peak_graph=False, weight=10.):
     '''
     Search for appropriate binding sites
 
@@ -48,7 +49,7 @@ def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=co
     best_compounds = [{}]*len(binding_dicts)
     for i, (peak, binding_dict) in enumerate(binding_dicts.items()):
         print(f'Peak {round(peak, 2)} ------', end=' ')
-        binding_sites_record = match_peaks(peak, binding_dict, bound_df, full=full_data)
+        binding_sites_record = match_peaks(peak, binding_dict, bound_df, full=full_data, weight=weight)
         best_compounds[i] = binding_sites_record
     print('Elapsed (seconds):', str((time.time()-start)))
 
@@ -68,25 +69,13 @@ def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=co
         'ppm', 'Closeness of Fit (Loss)', 'Closest Fit']]
 
 
-def search_all(dirpath, compounds_file, adducts_file):
-
-    calibrated = '_softwareCal' if config.calibrate == 'on' else '_noSWCal'
-    bound_files = [f for f in listdir(dirpath) if isfile(join(dirpath, f))]
-    for bound_fn in bound_files:
-        binding_sites = search(join(dirpath, bound_fn), compounds_file, adducts_file)
-        output_fn = bound_fn[:bound_fn.rfind('.')] + f'{calibrated}.csv'
-        binding_sites.to_csv(join(dirpath, output_fn), index=False)
-
-
 if __name__ == "__main__":
 
     compounds = "Data/Compound Constraints/Compounds_CisOxTrans_latest.xlsx"
     adducts = "Data/Compound Constraints/Standard_Adducts.xlsx"
-    bound = "Data/Deconvoluted Spectra/uc_christian.xlsx"
-    
-    # binding_sites = search(bound, compounds, adducts)
-    # pd.set_option("display.max_rows", None, "display.max_columns", None)
-    # print(binding_sites)
-    # binding_sites.to_csv('test_output.csv', index=False)
+    bound = "Data/Deconvoluted Spectra/uc_medres_precal.xlsx"
 
-    search_all('Data/Deconvoluted Spectra', compounds, adducts)
+    binding_sites = search(bound, compounds, adducts)
+    # pd.set_option("display.max_rows", None, "display.max_columns", None)
+    print(binding_sites)
+    binding_sites.to_csv('test_output.csv', index=False)
