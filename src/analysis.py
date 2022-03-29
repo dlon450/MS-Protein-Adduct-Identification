@@ -1,9 +1,12 @@
 import pandas as pd 
 import numpy as np
 import config
+import matplotlib.pyplot as plt
 from binding_site_search import search
+from peak_search import peak_find
 from os import listdir
 from os.path import isfile, join
+from utils import *
 
 
 def search_all(dirpath, compounds_file, adducts_file):
@@ -33,8 +36,8 @@ def validate_ground_truth(ground_truth_file, binding_sites):
     return result
 
 
-def generate_results(ground_truth, bound, compounds, adducts, results_file='Data/results_validation_hires.csv',\
-    obj_func='DTWEucl', weights=[0., 1., 10., 100., 1000., 10000.]):
+def generate_results(ground_truth, bound, compounds, adducts, results_file,\
+        obj_func='CL', weights=[0., 1., 10., 100., 1000., 10000.]):
     '''
     Generate results for objective function and range of given weights 
     '''
@@ -46,12 +49,47 @@ def generate_results(ground_truth, bound, compounds, adducts, results_file='Data
     df.to_csv(results_file, index=False)
 
 
+def plot_resolutions_MS(lr_file='Data/Deconvoluted Spectra/uc_lowres_precal.xlsx', \
+        mr_file='Data/Deconvoluted Spectra/uc_medres_precal.xlsx', \
+        hr_file='Data/Deconvoluted Spectra/uc_hires_precal.xlsx', plot_peaks=True):
+
+    lr = pd.read_excel(lr_file)
+    mr = pd.read_excel(mr_file)
+    hr = pd.read_excel(hr_file)
+
+    subplot = 311
+    if plot_peaks:
+        titles = ['LR', 'MR', 'HR']
+        for i, df in enumerate([lr, mr, hr]):
+            df = normalise(df)
+            plt.subplot(subplot+i), plt.plot(df['m/z'], df['normalised_intensity']), plt.ylabel('Relative Abundance'), \
+                plt.xlim([8400, 9400]), plt.title(titles[i])
+            _, peaks, keep = peak_find(df, 0.01)
+            plt.subplot(subplot+i), plt.plot(df['m/z'][peaks[keep]], df['normalised_intensity'][peaks[keep]], "kx")
+        plt.xlabel('Atomic mass')
+        plt.savefig('Data/Deconvoluted Spectra/peak_identification_res.png')
+    else:
+        plt.subplot(311), plt.plot(lr['m/z'], lr['I']), plt.ylabel('Intensity'), \
+            plt.xlim([8400, 9400]), plt.title('Low Resolution')
+        plt.subplot(312), plt.plot(mr['m/z'], mr['I']), plt.ylabel('Intensity'), \
+            plt.xlim([8400, 9400]), plt.title('Medium Resolution')
+        plt.subplot(313), plt.plot(hr['m/z'], hr['I']), plt.ylabel('Intensity'), plt.xlabel('m'), \
+            plt.xlim([8400, 9400]), plt.title('High Resolution')
+        plt.savefig('Data/Deconvoluted Spectra/MS_resolution.png')
+
+    # plt.bar(hr['m/z'], hr['I'], width=0.05), plt.ylabel('Intensity'), plt.xlabel('m'), plt.xlim([8558.6, 8577.6])
+    plt.show()
+
+
 if __name__ == "__main__":
     
     compounds = "Data/Compound Constraints/Compounds_CisOxTrans_latest.xlsx"
     adducts = "Data/Compound Constraints/Standard_Adducts.xlsx"
     bound = "Data/Deconvoluted Spectra/uc_hires_precal.xlsx"
+    results = 'Data/results_validation_hires.csv'
     ground_truth = "Data/ground_truth.csv"
 
     # search_all('Data/Deconvoluted Spectra', compounds, adducts)
-    generate_results(ground_truth, bound, compounds, adducts)
+    generate_results(ground_truth, bound, compounds, adducts, results_file=results)
+    # plt.rcParams["figure.figsize"] = (25,12)
+    # plot_resolutions_MS()

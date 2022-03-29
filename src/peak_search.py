@@ -71,7 +71,7 @@ def match_peaks(peak, binding_dict, bound_df, full=False, weight=10.):
     return binding_site_record
 
 
-def plot_peaks(bound_df: pd.DataFrame, peaks: pd.DataFrame, keep: np.array, raw_MS=True):
+def plot_peaks(bound_df: pd.DataFrame, peaks: pd.DataFrame, keep: np.array, raw_MS=False):
     '''
     Plot MS and label peaks
     '''
@@ -83,6 +83,7 @@ def plot_peaks(bound_df: pd.DataFrame, peaks: pd.DataFrame, keep: np.array, raw_
         plt.plot(bound_df['m/z'][peaks], bound_df['normalised_intensity'][peaks], "x", label='Identified peaks')
         plt.plot(bound_df['m/z'][peaks[keep]], bound_df['normalised_intensity'][peaks[keep]], "ko", markersize=3, label='Filtered peaks')
         plt.ylabel('Relative abundance')
+        plt.xlim([8400, 9400])
 
     plt.xlabel('m')
     plt.legend()

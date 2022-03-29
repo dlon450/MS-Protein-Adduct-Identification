@@ -122,13 +122,16 @@ def objective_func(formula, m, y, peak_mass, proton_offset, weight=1.):
     # distance, _ = fastdtw(list(zip(masses, np.array(x) / x[max_idx_x] * weight)), list(zip(m, y * weight)), dist=euclidean)
     distance = similaritymeasures.frechet_dist(list(zip(masses, np.array(x) / x[max_idx_x] * weight)), list(zip(m, y * weight)))
     # distance = similaritymeasures.area_between_two_curves(np.array(list(zip(m, y * weight))), np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))))
-    # distance = similaritymeasures.dtw(np.array(list(zip(m, y * weight))), np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))), metric='euclidean')
+    # distance = similaritymeasures.dtw(np.array(list(zip(m, y * weight))), np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))), metric='seuclidean')
     # distance = similaritymeasures.pcm(np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))), np.array(list(zip(m, y * weight))))
+    # distance = similaritymeasures.curve_length_measure(np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))), np.array(list(zip(m, y * weight))))
 
-    # plt.plot(m, y * weight)
-    # plt.plot(masses, np.array(x) * weight / x[max_idx_x])
-    # plt.savefig(f'isotope_matches/{peak_mass}_{formula}_{distance}.png')
-    # plt.clf()
+    plt.plot(m, y * weight, label='Experimental')
+    plt.plot(masses, np.array(x) * weight / x[max_idx_x], label='Theoretical')
+    plt.legend()
+    plt.xlim([peak_mass-10., peak_mass+10.])
+    plt.savefig(f'isotope_matches/{peak_mass}_{formula}.png')
+    plt.clf()
 
     return distance / weight, isotope_peak
 
@@ -214,7 +217,7 @@ def missing_elements(fn=r'C:\Users\longd\Downloads\List of elements.csv'):
 
 if __name__ == "__main__":
 
-    formula = 'C378H629N105O118S1PtNH3NH3Cl'
+    formula = 'C378H629N105O118S1'
     isotopes = find_isotope_pattern(formula)
-    plt.rcParams["figure.figsize"] = (20,10)
+    plt.rcParams["figure.figsize"] = (15,10)
     plotIsotopeDistribution(isotopes, formula, True)

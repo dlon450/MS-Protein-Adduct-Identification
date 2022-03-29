@@ -14,7 +14,7 @@ from os.path import isfile, join
 def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=config.tolerance, peak_height=config.peak_height,\
         multi_protein=config.multi_protein, min_primaries=config.min_primaries, max_primaries=config.max_primaries,\
             max_adducts=config.max_adducts, valence=config.valence, only_best=config.only_best, min_dist_between_peaks=5., \
-                calibrate=config.calibrate, plot_peak_graph=False, weight=10.):
+                calibrate=config.calibrate, plot_peak_graph=False, weight=1.):
     '''
     Search for appropriate binding sites
 
@@ -73,9 +73,10 @@ if __name__ == "__main__":
 
     compounds = "Data/Compound Constraints/Compounds_CisOxTrans_latest.xlsx"
     adducts = "Data/Compound Constraints/Standard_Adducts.xlsx"
-    bound = "Data/Deconvoluted Spectra/uc_medres_precal.xlsx"
+    bound = "Data/Deconvoluted Spectra/uc_hires_precal.xlsx"
 
+    # plt.rcParams["figure.figsize"] = (18,3)
     binding_sites = search(bound, compounds, adducts)
     # pd.set_option("display.max_rows", None, "display.max_columns", None)
     print(binding_sites)
-    binding_sites.to_csv('test_output.csv', index=False)
+    # binding_sites.to_csv('test_output.csv', index=False)
