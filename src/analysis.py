@@ -4,6 +4,7 @@ import config
 import matplotlib.pyplot as plt
 from binding_site_search import search
 from peak_search import peak_find
+from isotope_pattern import peak_isotope
 from os import listdir
 from os.path import isfile, join
 from utils import *
@@ -99,6 +100,21 @@ def plot_resolutions_MS(x_range=[8400, 9400], lr_file='Data/Deconvoluted Spectra
     plt.show()
 
 
+def accuracy_ppm_comparison(formulas=['C378H629N105O118S1'], n=8):
+    '''
+    Compare ppm at different accuracies for peak in isotope pattern
+    '''
+    total_ppms = np.zeros(n)
+    for formula in formulas:
+        baseline = peak_isotope(formula, accuracy=0.1 ** n)
+        accuracies = 0.1 ** np.arange(1, n)
+        for i, acc in enumerate(accuracies):
+            current = peak_isotope(formula, acc)
+            ppm = abs(current - baseline) / baseline
+            total_ppms[i] += ppm
+    return total_ppms/n
+
+
 if __name__ == "__main__":
     
     compounds = "Data/Compound Constraints/Compounds_CisOxTrans_latest.xlsx"
@@ -112,3 +128,4 @@ if __name__ == "__main__":
     # generate_results(ground_truth, bound, compounds, adducts, results_file=results)
     # plt.rcParams["figure.figsize"] = (25,12)
     # plot_resolutions_MS(x_range=[8840, 8860], plot_peaks=False, save=False)
+    # print(accuracy_ppm_comparison(['C378H629N105O118S1', 'C560H874Fe1N148O156S4', 'C613H951O185N193S10', 'C769H1212N210O218S2']))

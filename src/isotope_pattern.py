@@ -10,7 +10,15 @@ import time
 PROTON_MASS = 1.0078250319
 
 
-def peak_isotope(formula: object) -> float:
+def peak_isotope(formula: object, accuracy=1e-3) -> float:
+    '''
+    Use isotope pattern to find peak isotope
+    '''
+    masses, rel_abundance = find_isotope_pattern(formula, accuracy)
+    return masses[np.argmax(rel_abundance)]
+
+
+def peak_isotope_old(formula: object) -> float:
     '''
     Use isotope pattern to find average mass
     '''
@@ -40,11 +48,36 @@ def find_nominal_masses(formula_str: str):
     return iso_dict
 
 
-def find_isotope_pattern(formula_str: str):
+def find_isotope_pattern(formula_str: str, accuracy=1e-1):
     '''
     Return theoretical distribution of intensities
     '''
+    seq_formula = EmpiricalFormula(formula_str)
+    isotopes = seq_formula.getIsotopeDistribution( FineIsotopePatternGenerator(accuracy) )
+    masses_dict = {}
+    abundances_dict = {}
 
+    for iso in isotopes.getContainer():
+        mz = iso.getMZ()    
+        group = int(mz)
+        abundance = iso.getIntensity()
+
+        if group in masses_dict:
+            masses_dict[group] += mz*abundance
+            abundances_dict[group] += abundance
+        else:
+            masses_dict[group] = mz*abundance
+            abundances_dict[group] = abundance
+
+    rel_abundances = np.array(list(abundances_dict.values()))
+    masses = np.array(list(masses_dict.values())) / rel_abundances
+    return masses, rel_abundances
+
+
+def find_isotope_pattern_old(formula_str: str):
+    '''
+    Return theoretical distribution of intensities
+    '''
     iso_dict = find_nominal_masses(formula_str)
     isotopes = iso_dict.values()
     n = len(isotopes)
@@ -119,7 +152,10 @@ def objective_func(formula, m, y, peak_mass, proton_offset, weight=1.):
     masses, x = find_isotope_pattern(f'{formula}H-{proton_offset}')
     max_idx_x = maxInBitonic(x, 0, len(x) - 1)
     isotope_peak = masses[max_idx_x]
-
+    # masses = np.array(masses)
+    # start = masses.searchsorted(isotope_peak - 6.)
+    # stop = masses.searchsorted(isotope_peak + 6.)
+    
     # distance, _ = fastdtw(list(zip(masses, np.array(x) / x[max_idx_x] * weight)), list(zip(m, y * weight)), dist=euclidean)
     distance = similaritymeasures.frechet_dist(list(zip(masses, np.array(x) / x[max_idx_x] * weight)), list(zip(m, y * weight)))
     # distance = similaritymeasures.area_between_two_curves(np.array(list(zip(m, y * weight))), np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))))
