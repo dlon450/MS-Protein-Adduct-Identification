@@ -26,6 +26,7 @@ def search_paired_files(dirpath, adducts_file):
     Search through paired bound and compound files
     '''
     all_files = [f for f in listdir(dirpath) if isfile(join(dirpath, f))]
+    all_files.sort()
     mid_idx = len(all_files) // 2
     bound_files = all_files[:mid_idx]
     compound_files = all_files[mid_idx:]
