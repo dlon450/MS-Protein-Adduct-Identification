@@ -77,6 +77,7 @@ def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=Fal
     exp_abundance = bound_df['I'].to_numpy()
     exp_abundance = (exp_abundance / exp_abundance[p])[start:stop]
     keep = np.where(np.logical_and(exp_abundance > 0.15, exp_abundance < 1.001))
+    # keep = np.where(exp_abundance > 0.)
     
     peak_compounds = binding_dict['Species']
     proton_offset = binding_dict['Proton Offset']
@@ -90,7 +91,7 @@ def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=Fal
             exp_masses[keep], exp_abundance[keep], peak_mass, proton_offset[i], weight)
         binding_dict['Closeness of Fit (Loss)'][i] = distance
 
-        theoretical_peak_mass = isotope_peak_mass # - proton_offset[i] * PROTON_MASS
+        theoretical_peak_mass = isotope_peak_mass
         binding_dict['Theoretical Peak Mass'][i] = theoretical_peak_mass
         binding_dict['ppm'][i] = abs(theoretical_peak_mass - peak_mass) / theoretical_peak_mass * 1000000 
 
@@ -126,12 +127,12 @@ def objective_func(formula, m, y, peak_mass, proton_offset, weight=1.):
     # distance = similaritymeasures.pcm(np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))), np.array(list(zip(m, y * weight))))
     # distance = similaritymeasures.curve_length_measure(np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))), np.array(list(zip(m, y * weight))))
 
-    plt.plot(m, y * weight, label='Experimental')
-    plt.plot(masses, np.array(x) * weight / x[max_idx_x], label='Theoretical')
-    plt.legend()
-    plt.xlim([peak_mass-10., peak_mass+10.])
-    plt.savefig(f'isotope_matches/{peak_mass}_{formula}.png')
-    plt.clf()
+    # plt.plot(m, y * weight, label='Experimental')
+    # plt.plot(masses, np.array(x) * weight / x[max_idx_x], label='Theoretical')
+    # plt.legend()
+    # plt.xlim([peak_mass-10., peak_mass+10.])
+    # plt.savefig(f'isotope_matches/{peak_mass}_{formula}.png')
+    # plt.clf()
 
     return distance / weight, isotope_peak
 

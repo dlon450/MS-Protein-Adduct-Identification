@@ -8,7 +8,7 @@ from isotope_pattern import *
 import time
 
 
-def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks=3., calibrate=True, protein='C378H629N105O118S1'):
+def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks=4., calibrate=True, protein_strs=['C378H629N105O118S1']):
     '''
     Find distinct peaks above 'peak_height' (default 0.05) intensity 
     '''
@@ -24,7 +24,7 @@ def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks
     k = 0
     max_I = peak_I[k]
     for i in range(1, n):
-        if peak_masses[i] - peak_masses[i-1] <= 3.:
+        if peak_masses[i] - peak_masses[i-1] <= min_dist_between_peaks:
             current_I = peak_I[i]
             if current_I > max_I:
                 max_I = current_I
@@ -36,15 +36,15 @@ def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks
     keep[k] = True
 
     if calibrate:
-        shift = calibration_shift(peak_masses[keep], protein_formula=protein)
+        shift = calibration_shift(peak_masses[keep], protein_formulas=protein_strs)
         bound_df['m/z'] += shift
         peak_masses += shift
 
     return peak_masses[keep], peaks_idx, keep
 
 
-def calibration_shift(peaks, protein_formula):
-    protein_peak = peak_isotope(protein_formula)
+def calibration_shift(peaks, protein_formulas):
+    protein_peak = min([peak_isotope(formula) for formula in protein_formulas])
     return protein_peak - min(peaks, key=lambda x:abs(x-protein_peak))
 
 

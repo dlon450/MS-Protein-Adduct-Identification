@@ -13,8 +13,8 @@ from os.path import isfile, join
 
 def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=config.tolerance, peak_height=config.peak_height,\
         multi_protein=config.multi_protein, min_primaries=config.min_primaries, max_primaries=config.max_primaries,\
-            max_adducts=config.max_adducts, valence=config.valence, only_best=config.only_best, min_dist_between_peaks=5., \
-                calibrate=config.calibrate, plot_peak_graph=False, weight=1.):
+            max_adducts=config.max_adducts, valence=config.valence, only_best=config.only_best, min_dist_between_peaks=4., \
+                calibrate=config.calibrate, plot_peak_graph=False, weight=10.):
     '''
     Search for appropriate binding sites
 
@@ -35,8 +35,10 @@ def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=co
     bound_df, compounds = read(bound_file_path, compounds_file_path, adducts_file_path)
 
     bound_df = normalise(bound_df) # scale spectrums between 0 and 1
-    protein_str = compounds[compounds['Compound/Fragment Type'] == 'Protein']['Formula'].to_numpy()[0]
-    peaks, peaks_idx, keep = peak_find(bound_df, float(peak_height), float(min_dist_between_peaks), calibrate, protein_str) # find peaks 
+    protein_strs = compounds[compounds['Compound/Fragment Type'] == 'Protein']['Formula'].to_numpy()
+    if len(protein_strs) > 1:
+        multi_protein = True
+    peaks, peaks_idx, keep = peak_find(bound_df, float(peak_height), float(min_dist_between_peaks), calibrate, protein_strs) # find peaks 
     if plot_peak_graph:
         plot_peaks(bound_df, peaks_idx, keep)
 
@@ -73,7 +75,7 @@ if __name__ == "__main__":
 
     compounds = "Data/Compound Constraints/Compounds_CisOxTrans_latest.xlsx"
     adducts = "Data/Compound Constraints/Standard_Adducts.xlsx"
-    bound = "Data/Deconvoluted Spectra/uc_hires_precal.xlsx"
+    bound = "Data/Deconvoluted Spectra/uc_medres_precal.xlsx"
 
     # plt.rcParams["figure.figsize"] = (18,3)
     binding_sites = search(bound, compounds, adducts)
