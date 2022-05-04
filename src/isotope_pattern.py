@@ -48,7 +48,7 @@ def find_nominal_masses(formula_str: str):
     return iso_dict
 
 
-def find_isotope_pattern(formula_str: str, accuracy=1e-1):
+def find_isotope_pattern(formula_str: str, accuracy=1e-3):
     '''
     Return theoretical distribution of intensities
     '''
@@ -58,7 +58,7 @@ def find_isotope_pattern(formula_str: str, accuracy=1e-1):
     abundances_dict = {}
 
     for iso in isotopes.getContainer():
-        mz = iso.getMZ()    
+        mz = iso.getMZ()
         group = int(mz)
         abundance = iso.getIntensity()
 
@@ -120,8 +120,9 @@ def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=Fal
 
     for i, compound_list in enumerate(peak_compounds):
         
+        # plt.plot(exp_masses, exp_abundance * weight, label='Experimental')
         distance, isotope_peak_mass = objective_func(''.join(compound_list), \
-            exp_masses[keep], exp_abundance[keep], peak_mass, proton_offset[i], weight)
+            exp_masses[keep], exp_abundance[keep], proton_offset[i], weight)
         binding_dict['Closeness of Fit (Loss)'][i] = distance
 
         theoretical_peak_mass = isotope_peak_mass
@@ -142,14 +143,14 @@ def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=Fal
     return binding_site_record
 
 
-def objective_func(formula, m, y, peak_mass, proton_offset, weight=1.):
+def objective_func(formula, m, y, proton_offset, weight=1.):
     '''
     Returns the DTW loss
     '''
     if formula == '':
         return 99999
-
-    masses, x = find_isotope_pattern(f'{formula}H-{proton_offset}')
+    
+    masses, x = find_isotope_pattern(f'{formula}H{-proton_offset}')
     max_idx_x = maxInBitonic(x, 0, len(x) - 1)
     isotope_peak = masses[max_idx_x]
     # masses = np.array(masses)
@@ -254,7 +255,10 @@ def missing_elements(fn=r'C:\Users\longd\Downloads\List of elements.csv'):
 
 if __name__ == "__main__":
 
-    formula = 'C378H629N105O118S1'
-    isotopes = find_isotope_pattern(formula)
-    plt.rcParams["figure.figsize"] = (15,10)
-    plotIsotopeDistribution(isotopes, formula, True)
+    formula = 'C378H629N105O118S1'                  # Bruker: 8564.630429
+    print(peak_isotope(formula, accuracy=1e-3))     # 8564.630447593447
+    formula = 'C378H629N105O118S1PtPtNH3NH3NH3H2OCl'
+    find_nominal_masses(formula)
+    # isotopes = find_isotope_pattern(formula, accuracy=1e-8)
+    # plt.rcParams["figure.figsize"] = (15,10)
+    # plotIsotopeDistribution(isotopes, formula, save=False)
