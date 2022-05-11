@@ -12,7 +12,7 @@ def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks
     '''
     Find distinct peaks above 'peak_height' (default 0.05) intensity 
     '''
-    peaks_idx, _ = find_peaks(bound_df['normalised_intensity'], height=peak_height)
+    peaks_idx, properties = find_peaks(bound_df['normalised_intensity'], height=peak_height)
     peaks = bound_df.loc[peaks_idx]
 
     peak_masses = peaks["m/z"].to_numpy()
@@ -40,7 +40,7 @@ def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks
         bound_df['m/z'] += shift
         peak_masses += shift
 
-    return peak_masses[keep], peaks_idx, keep
+    return peak_masses[keep], peaks_idx, keep, dict(zip(peak_masses, properties['peak_heights']))
 
 
 def calibration_shift(peaks, protein_formulas):
@@ -48,7 +48,7 @@ def calibration_shift(peaks, protein_formulas):
     return protein_peak - min(peaks, key=lambda x:abs(x-protein_peak))
 
 
-def match_peaks(peak, binding_dict, bound_df, full=False, weight=10.):
+def match_peaks(peak, binding_dict, bound_df, intensity, full=False, weight=10.):
     '''
     Match peaks to theoretical list
     '''
@@ -60,11 +60,12 @@ def match_peaks(peak, binding_dict, bound_df, full=False, weight=10.):
     binding_dict['Closest Fit'] = [False]*n_solns
 
     # intensities f()
-    find_intensities = interpolate.interp1d(bound_df['m/z'].to_numpy(), bound_df['normalised_intensity'].to_numpy(), kind='linear')
+    # find_intensities = interpolate.interp1d(bound_df['m/z'].to_numpy(), bound_df['normalised_intensity'].to_numpy(), kind='linear')
 
-    binding_site_record = calculate_score_no_interpolation(peak, binding_dict, bound_df, full, weight) #  allocate DTW scores with no interpolation
-    binding_site_record['Intensity'] = find_intensities(binding_site_record['Theoretical Peak Mass'])
-    
+    binding_site_record = calculate_score_no_interpolation(peak, binding_dict, bound_df, full, weight) #  allocate scores with no interpolation
+    # binding_site_record['Intensity'] = find_intensities(binding_site_record['Theoretical Peak Mass'])
+    binding_site_record['Intensity'] = intensity
+
     print('Elapsed (seconds):', str((time.time()-start)))
     if full:
         return pd.DataFrame(binding_site_record).sort_values(by=['Closeness of Fit (Loss)'])

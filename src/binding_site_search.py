@@ -38,7 +38,7 @@ def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=co
     protein_strs = compounds[compounds['Compound/Fragment Type'] == 'Protein']['Formula'].to_numpy()
     if len(protein_strs) > 1:
         multi_protein = True
-    peaks, peaks_idx, keep = peak_find(bound_df, float(peak_height), float(min_dist_between_peaks), calibrate, protein_strs) # find peaks 
+    peaks, peaks_idx, keep, peak_intensities_dict = peak_find(bound_df, float(peak_height), float(min_dist_between_peaks), calibrate, protein_strs) # find peaks 
     if plot_peak_graph:
         plot_peaks(bound_df, peaks_idx, keep)
 
@@ -51,7 +51,8 @@ def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=co
     best_compounds = [{}]*len(binding_dicts)
     for i, (peak, binding_dict) in enumerate(binding_dicts.items()):
         print(f'Peak {round(peak, 2)} ------', end=' ')
-        binding_sites_record = match_peaks(peak, binding_dict, bound_df, full=full_data, weight=weight)
+        intensity = peak_intensities_dict[peak]
+        binding_sites_record = match_peaks(peak, binding_dict, bound_df, intensity, full=full_data, weight=weight)
         best_compounds[i] = binding_sites_record
     print('Elapsed (seconds):', str((time.time()-start)))
 

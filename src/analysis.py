@@ -124,8 +124,8 @@ if __name__ == "__main__":
     ground_truth = "Data/ground_truth.csv"
 
     # search_all('Data/Deconvoluted Spectra', compounds, adducts)
-    # search_paired_files('Data/Input Data/Cisplatin-20220421T034342Z-001/Cisplatin', adducts)
+    search_paired_files('Data/Input Data/Cisplatin-20220421T034342Z-001/Cisplatin', adducts)
     # generate_results(ground_truth, bound, compounds, adducts, results_file=results)
     # plt.rcParams["figure.figsize"] = (25,12)
     # plot_resolutions_MS(x_range=[8840, 8860], plot_peaks=False, save=False)
-    print(accuracy_ppm_comparison(['C378H629N105O118S1', 'C560H874Fe1N148O156S4', 'C613H951O185N193S10', 'C769H1212N210O218S2']))
+    # print(accuracy_ppm_comparison(['C378H629N105O118S1', 'C560H874Fe1N148O156S4', 'C613H951O185N193S10', 'C769H1212N210O218S2']))

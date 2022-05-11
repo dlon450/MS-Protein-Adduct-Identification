@@ -54,9 +54,9 @@ def feasible_set_df(compounds, peaks_mass, tolerance, multi_protein=False, min_p
             output = list(zip(*potential_cmpds))
             solution_dict[peak] = {
                 "Species": output[0], 
-                "Proton Offset": int(output[2]),
+                "Proton Offset": output[2],
                 "Theoretical Peak Mass": output[1],
-                "ppm": abs(output[1] - peak) / output[1] * 1000000 
+                "ppm": abs(output[1] - peak) / output[1] * 1000000
             }
     
     end = time.time()

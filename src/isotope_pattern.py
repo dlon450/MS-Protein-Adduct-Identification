@@ -1,4 +1,4 @@
-from pyopenms import *
+from pyopenms import FineIsotopePatternGenerator, EmpiricalFormula
 import numpy as np
 import similaritymeasures
 from matplotlib import pyplot as plt
