@@ -10,7 +10,7 @@ import time
 
 def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks=4., calibrate=True, protein_strs=['C378H629N105O118S1']):
     '''
-    Find distinct peaks above 'peak_height' (default 0.05) intensity 
+    Find distinct peaks above 'peak_height' (default 0.01) intensity 
     '''
     peaks_idx, properties = find_peaks(bound_df['normalised_intensity'], height=peak_height)
     peaks = bound_df.loc[peaks_idx]
@@ -20,20 +20,23 @@ def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks
     peak_I = peaks["I"].to_numpy()
     keep = [False]*len(peak_masses)
 
+    args = np.argsort(-peak_I)
+    keep = get_peaks(peak_masses[args])[np.argsort(args)] # inverse the argsort to get indices of peak_masses
+
     # remove peaks close together
-    k = 0
-    max_I = peak_I[k]
-    for i in range(1, n):
-        if peak_masses[i] - peak_masses[i-1] <= min_dist_between_peaks:
-            current_I = peak_I[i]
-            if current_I > max_I:
-                max_I = current_I
-                k = i
-        else:
-            keep[k] = True
-            k = i
-            max_I = peak_I[i]
-    keep[k] = True
+    # k = 0
+    # max_I = peak_I[k]
+    # for i in range(1, n):
+    #     if peak_masses[i] - peak_masses[i-1] <= min_dist_between_peaks:
+    #         current_I = peak_I[i]
+    #         if current_I > max_I:
+    #             max_I = current_I
+    #             k = i
+    #     else:
+    #         keep[k] = True
+    #         k = i
+    #         max_I = peak_I[i]
+    # keep[k] = True
 
     if calibrate:
         shift = calibration_shift(peak_masses[keep], protein_formulas=protein_strs)
@@ -41,6 +44,17 @@ def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks
         peak_masses += shift
 
     return peak_masses[keep], peaks_idx, keep, dict(zip(peak_masses, properties['peak_heights']))
+
+
+def get_peaks(masses):
+    peaks = []
+    masses_copy = masses.copy()
+    while len(masses_copy) != 0:
+        mass_of_greatest_peak = masses_copy[0]
+        peaks.append(mass_of_greatest_peak)
+        peaks_not_close_to_m = np.where(abs(masses_copy-mass_of_greatest_peak)>15.)
+        masses_copy = masses_copy[peaks_not_close_to_m]
+    return np.isin(masses, peaks)
 
 
 def calibration_shift(peaks, protein_formulas):
@@ -84,7 +98,7 @@ def plot_peaks(bound_df: pd.DataFrame, peaks: pd.DataFrame, keep: np.array, raw_
         plt.plot(bound_df['m/z'][peaks], bound_df['normalised_intensity'][peaks], "x", label='Identified peaks')
         plt.plot(bound_df['m/z'][peaks[keep]], bound_df['normalised_intensity'][peaks[keep]], "ko", markersize=3, label='Filtered peaks')
         plt.ylabel('Relative abundance')
-        plt.xlim([8400, 9400])
+        plt.xlim([16500, 18500])
 
     plt.xlabel('m')
     plt.legend()

@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import time
 import config
+from scipy import interpolate
 
 from utils import *
 from peak_search import *
@@ -14,7 +15,7 @@ from os.path import isfile, join
 def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=config.tolerance, peak_height=config.peak_height,\
         multi_protein=config.multi_protein, min_primaries=config.min_primaries, max_primaries=config.max_primaries,\
             max_adducts=config.max_adducts, valence=config.valence, only_best=config.only_best, min_dist_between_peaks=4., \
-                calibrate=config.calibrate, plot_peak_graph=False, weight=10.):
+                calibrate=config.calibrate, plot_peak_graph=False, weight=10., return_peaks=False):
     '''
     Search for appropriate binding sites
 
@@ -44,6 +45,9 @@ def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=co
 
     binding_dicts = feasible_set_df(compounds, peaks, float(tolerance), multi_protein, \
         int(min_primaries), int(max_primaries), int(max_adducts), int(valence)) # feasible set of integer combinations
+
+    if return_peaks:
+        return interpolate.interp1d(bound_df['m/z'].to_numpy(), bound_df['normalised_intensity'].to_numpy(), kind='linear'), peaks, list(binding_dicts.keys())
 
     # calculate objectives of solns
     print('\nFinding loss...')
@@ -78,8 +82,11 @@ if __name__ == "__main__":
     adducts = "Data/Compound Constraints/Standard_Adducts.xlsx"
     bound = "Data/Deconvoluted Spectra/uc_medres_precal.xlsx"
 
+    bound = r"Data\Input Data\RAPTA-C-20220421T034334Z-001\RAPTA-C\bound_spectrum_mb_rapc_precal.xlsx"
+    compounds = r"Data\Input Data\RAPTA-C-20220421T034334Z-001\RAPTA-C\compounds_mb_rapc.xlsx"
+
     # plt.rcParams["figure.figsize"] = (18,3)
     binding_sites = search(bound, compounds, adducts)
-    # pd.set_option("display.max_rows", None, "display.max_columns", None)
+    pd.set_option("display.max_rows", None, "display.max_columns", None)
     print(binding_sites)
-    # binding_sites.to_csv('test_output.csv', index=False)
+    binding_sites.to_csv('test_output.csv', index=False)

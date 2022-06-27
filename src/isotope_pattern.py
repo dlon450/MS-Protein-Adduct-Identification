@@ -1,4 +1,5 @@
-from pyopenms import FineIsotopePatternGenerator, EmpiricalFormula
+from multiprocessing.sharedctypes import Value
+from pyopenms import FineIsotopePatternGenerator, EmpiricalFormula, CoarseIsotopePatternGenerator
 import numpy as np
 import similaritymeasures
 from matplotlib import pyplot as plt
@@ -10,11 +11,11 @@ import time
 PROTON_MASS = 1.0078250319
 
 
-def peak_isotope(formula: object, accuracy=1e-3) -> float:
+def peak_isotope(formula: object, accuracy=1e-3, peak=None) -> float:
     '''
     Use isotope pattern to find peak isotope
     '''
-    masses, rel_abundance = find_isotope_pattern(formula, accuracy)
+    masses, rel_abundance = find_isotope_pattern(formula, accuracy, peak)
     return masses[np.argmax(rel_abundance)]
 
 
@@ -48,16 +49,21 @@ def find_nominal_masses(formula_str: str):
     return iso_dict
 
 
-def find_isotope_pattern(formula_str: str, accuracy=1e-3):
+def find_isotope_pattern(formula_str: str, accuracy=1e-3, peak=None, interval=5.):
     '''
     Return theoretical distribution of intensities
     '''
     seq_formula = EmpiricalFormula(formula_str)
     isotopes = seq_formula.getIsotopeDistribution( FineIsotopePatternGenerator(accuracy) )
+    isotopes_container = isotopes.getContainer()
     masses_dict = {}
     abundances_dict = {}
 
-    for iso in isotopes.getContainer():
+    if peak is not None:
+        lower, upper = binarySearchInterval(isotopes_container, np.floor(peak - interval), np.ceil(peak + interval))
+        isotopes_container = isotopes_container[lower:upper]
+
+    for iso in isotopes_container:
         mz = iso.getMZ()
         group = int(mz)
         abundance = iso.getIntensity()
@@ -72,6 +78,22 @@ def find_isotope_pattern(formula_str: str, accuracy=1e-3):
     rel_abundances = np.array(list(abundances_dict.values()))
     masses = np.array(list(masses_dict.values())) / rel_abundances
     return masses, rel_abundances
+
+
+def find_isotope_pattern_coarse(formula_str: str, peak=None, interval=5.):
+    '''
+    Return coarse theoretical distribution of intensities
+    '''
+    seq_formula = EmpiricalFormula(formula_str)
+    isotopes = seq_formula.getIsotopeDistribution( CoarseIsotopePatternGenerator() )
+    isotopes_container = isotopes.getContainer()
+
+    if peak is not None:
+        lower, upper = binarySearchInterval(isotopes_container, np.floor(peak - interval), np.ceil(peak + interval))
+        isotopes_container = isotopes_container[lower:upper]
+    
+    o = np.transpose([[iso.getMZ(), iso.getIntensity()] for iso in isotopes_container])
+    return o[0], o[1]
 
 
 def find_isotope_pattern_old(formula_str: str):
@@ -121,7 +143,7 @@ def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=Fal
     for i, compound_list in enumerate(peak_compounds):
         
         # plt.plot(exp_masses, exp_abundance * weight, label='Experimental')
-        distance, isotope_peak_mass = objective_func(''.join(compound_list), \
+        distance, isotope_peak_mass = objective_func(''.join(compound_list), peak_mass, \
             exp_masses[keep], exp_abundance[keep], proton_offset[i], weight)
         binding_dict['Closeness of Fit (Loss)'][i] = distance
 
@@ -143,26 +165,28 @@ def calculate_score_no_interpolation(peak_mass, binding_dict, bound_df, full=Fal
     return binding_site_record
 
 
-def objective_func(formula, m, y, proton_offset, weight=1.):
+def objective_func(formula, peak_mass, m, y, proton_offset, weight=1.):
     '''
     Returns the DTW loss
     '''
     if formula == '':
         return 99999
     
-    masses, x = find_isotope_pattern(f'{formula}H{-proton_offset}')
+    masses, x = find_isotope_pattern_coarse(f'{formula}H{-int(proton_offset)}', peak=peak_mass)
     max_idx_x = maxInBitonic(x, 0, len(x) - 1)
     isotope_peak = masses[max_idx_x]
     # masses = np.array(masses)
     # start = masses.searchsorted(isotope_peak - 6.)
     # stop = masses.searchsorted(isotope_peak + 6.)
-    
-    # distance, _ = fastdtw(list(zip(masses, np.array(x) / x[max_idx_x] * weight)), list(zip(m, y * weight)), dist=euclidean)
-    distance = similaritymeasures.frechet_dist(list(zip(masses, np.array(x) / x[max_idx_x] * weight)), list(zip(m, y * weight)))
-    # distance = similaritymeasures.area_between_two_curves(np.array(list(zip(m, y * weight))), np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))))
-    # distance = similaritymeasures.dtw(np.array(list(zip(m, y * weight))), np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))), metric='seuclidean')
-    # distance = similaritymeasures.pcm(np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))), np.array(list(zip(m, y * weight))))
-    # distance = similaritymeasures.curve_length_measure(np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))), np.array(list(zip(m, y * weight))))
+
+    try:
+        # distance, _ = fastdtw(list(zip(masses, np.array(x) / x[max_idx_x] * weight)), list(zip(m, y * weight)), dist=euclidean)
+        # distance = similaritymeasures.area_between_two_curves(np.array(list(zip(m, y * weight))), np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))))
+        # distance = similaritymeasures.frechet_dist(list(zip(masses, np.array(x) / x[max_idx_x] * weight)), list(zip(m, y * weight)))
+        # distance = similaritymeasures.pcm(np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))), np.array(list(zip(m, y * weight))))
+        distance = similaritymeasures.dtw(np.array(list(zip(m, y * weight))), np.array(list(zip(masses, np.array(x) / x[max_idx_x] * weight))), metric='euclidean')[0]
+    except ValueError:
+        return 99999., isotope_peak
 
     # plt.plot(m, y * weight, label='Experimental')
     # plt.plot(masses, np.array(x) * weight / x[max_idx_x], label='Theoretical')
@@ -180,18 +204,50 @@ def maxInBitonic(arr, l, r) :
     (Returns index of maximum)
     '''
     while (l <= r) :
-        m = int(l + (r - l) / 2)
-        if ((r == l + 1) and arr[l] >= arr[r]):
-            return l
-        if ((r == l + 1) and arr[l] < arr[r]):
-            return r
-        if (arr[m] > arr[m + 1] and arr[m] > arr[m - 1]):
+        try:
+            m = int(l + (r - l) / 2)
+            if ((r == l + 1) and arr[l] >= arr[r]):
+                return l
+            if ((r == l + 1) and arr[l] < arr[r]):
+                return r
+            if (arr[m] > arr[m + 1] and arr[m] > arr[m - 1]):
+                return m
+            if (arr[m] > arr[m + 1] and arr[m] < arr[m - 1]) :
+                r = m - 1
+            else :
+                l = m + 1
+        except IndexError:
             return m
-        if (arr[m] > arr[m + 1] and arr[m] < arr[m - 1]) :
-            r = m - 1
-        else :
-            l = m + 1
     return -1
+
+
+def binarySearchInterval(isotopes, lbound, ubound):
+    '''
+    Find isotopes with masses in given interval
+    '''
+    low = 0
+    high = len(isotopes) - 1
+
+    lower_idx = binarySearch(isotopes, low, high, lbound)
+    upper_idx = binarySearch(isotopes, lower_idx, high, ubound) - 1
+    return lower_idx, upper_idx
+
+
+def binarySearch(isotopes, low, high, X):
+    '''
+    Search for index position of mass X in isotopes
+    '''
+    mid = 0
+    while low <= high:
+        mid = (high + low) // 2
+        mass = isotopes[mid].getMZ()
+        if mass < X:
+            low = mid + 1
+        elif mass > X:
+            high = mid - 1
+        else:
+            return mid
+    return high + 1
 
 
 def plotWarpDTW(x1, x2, warp_path):
@@ -253,12 +309,18 @@ def missing_elements(fn=r'C:\Users\longd\Downloads\List of elements.csv'):
     df[df.Symbol.isin(missing)][['Atomic number (Z)', 'Symbol','Name']].to_csv('missing_elements.csv', index_col=False)
 
 
+def find_species_additive_mass(species=["C769H1212N210O218S2", "Pt", "NH3", "H2O", "Cl"], counts=[1, 2, 4, 0, 2]):
+    masses = [peak_isotope(s)*c for s, c in zip(species, counts)]
+    return sum(masses)
+
+
 if __name__ == "__main__":
 
     formula = 'C378H629N105O118S1'                  # Bruker: 8564.630429
-    print(peak_isotope(formula, accuracy=1e-3))     # 8564.630447593447
-    formula = 'C378H629N105O118S1PtPtNH3NH3NH3H2OCl'
-    find_nominal_masses(formula)
-    # isotopes = find_isotope_pattern(formula, accuracy=1e-8)
+    # print(peak_isotope(formula, accuracy=1e-3))     # 8564.630447593447
+    formula = 'C769H1212N210O218S2'
+    # find_nominal_masses(formula)
+    print(peak_isotope(formula))
+    # isotopes = find_isotope_pattern(formula, accuracy=1e-3)
     # plt.rcParams["figure.figsize"] = (15,10)
     # plotIsotopeDistribution(isotopes, formula, save=False)
