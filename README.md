@@ -18,6 +18,8 @@ Note that **deconvoluted** spectrum will be required as input (for the bound MS 
 * HTML/JS/CSS
 * [Flask](https://flask.palletsprojects.com/en/2.0.x/)
 * [PyOpenMS](https://pyopenms.readthedocs.io/en/latest/)
+* [OR-Tools](https://developers.google.com/optimization/cp)
+* [SimilarityMeasures](https://github.com/cjekel/similarity_measures)
 
 ## Contact Information
 If you encounter any problems in using the code, please open an issue in this repository.
