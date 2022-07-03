@@ -191,13 +191,19 @@ def find_peaks_with_solutions(dirpath, adducts_file):
                 f, all_peaks, peaks = search(join(dirpath, bound_fn), join(dirpath, compound_fn), adducts_file, \
                     tolerance=tol, peak_height=ph, weight=1., return_peaks=True)
                 df[f'{ph*100.}%_{tol}'] = peaks
-                
+
+                # fp[f'{ph*100.}%_{tol}'].append(len(peaks)) # total peaks
+
                 if 'Experimental Mass' in df:
                     count = 0
                     for gp in df['Experimental Mass']:
-                        if np.isclose(peaks, gp, atol=5.).any():
+                        if not np.isclose(peaks, gp, atol=5.).any(): # not this will be missing
                             count += 1
-                    fp[f'{ph*100.}%_{tol}'].append(len(peaks) - count)
+                    # fp[f'{ph*100.}%_{tol}'].append(len(peaks) - count)
+                    fp[f'{ph*100.}%_{tol}'].append(count)
+
+                else:
+                    fp[f'{ph*100.}%_{tol}'].append(0)
                 
         # print(df)
         # pd.DataFrame.from_dict(df, orient='index').transpose().to_csv(join(dirpath, 'peaks', '_' + bound_fn[:bound_fn.rfind('.')] + '.csv'), index=False)
@@ -268,7 +274,7 @@ if __name__ == "__main__":
         r'Data\Input Data\Oxaliplatin-20220421T034341Z-001\Oxaliplatin',
         r'Data\Input Data\RAPTA-C-20220421T034334Z-001\RAPTA-C',
         r'Data\Input Data\Ru Complexes-20220421T034332Z-001\Ru Complexes',
-        r'Data\Input Data\ox_rapc_hires'
+        r'Data\Input Data\ox_rapc_hires\inner'
     ]
     # folders = [r'Data\Input Data\ox_rapc_hires\inner']
 
@@ -277,9 +283,16 @@ if __name__ == "__main__":
     false_positives = {}
     for folder in folders:
         # search_paired_files(folder, adducts, analysis=True)
-        false_positives.update(find_peaks_with_solutions(folder, adducts))
+
+        fp = find_peaks_with_solutions(folder, adducts)
+        for col, val in fp.items():
+            if col not in false_positives:
+                false_positives[col] = val
+            else:
+                false_positives[col].extend(val)
+
         # insert_intensities(folder)
-    pd.DataFrame.from_dict(false_positives, orient='index').transpose().to_csv(r'Data\Input Data\false_positives.csv', index=False)
+    pd.DataFrame.from_dict(false_positives, orient='index').transpose().to_csv(r'Data\Input Data\missing_peaks.csv', index=False)
 
     # distances = [find_peak_distances_distribution(folder) for folder in folders]
     # print(distances)
