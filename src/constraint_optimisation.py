@@ -85,7 +85,7 @@ def feasible_set_search(compounds, compound_masses, compound_maximum, compound_m
     # Enumerate all solutions.
     solver.parameters.enumerate_all_solutions = True
     # Solve.
-    status = solver.Solve(model, solution_printer)
+    # status = solver.Solve(model, solution_printer)
 
     # print('Status = %s' % solver.StatusName(status))
     print('Number of solutions found: %i' % solution_printer.solution_count())
@@ -93,44 +93,44 @@ def feasible_set_search(compounds, compound_masses, compound_maximum, compound_m
     return solution_printer.get_variables()
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
-    print('Reading data...')
+#     print('Reading data...')
 
-    base_path = "Data/"
-    fn = "Ubiquitin_plusC_1in100_000001"
-    unbound_file_path = base_path + "Deconvoluted Spectra/Ubi_1in100_broad band_000001.xlsx"
-    compounds_file_path = base_path + "Compound Constraints/Compounds_CisOxTrans_nlp.xlsx"
-    bound_file_path = base_path + "Deconvoluted Spectra/" + fn + ".xlsx"
+#     base_path = "Data/"
+#     fn = "Ubiquitin_plusC_1in100_000001"
+#     unbound_file_path = base_path + "Deconvoluted Spectra/Ubi_1in100_broad band_000001.xlsx"
+#     compounds_file_path = base_path + "Compound Constraints/Compounds_CisOxTrans_nlp.xlsx"
+#     bound_file_path = base_path + "Deconvoluted Spectra/" + fn + ".xlsx"
 
-    bound_df, unbound_df, compounds = read(bound_file_path, unbound_file_path, compounds_file_path)
+#     bound_df, unbound_df, compounds = read(bound_file_path, unbound_file_path, compounds_file_path)
 
-    exp_masses = bound_df['m/z'].to_numpy()
-    exp_abundance = bound_df['I'].to_numpy()
-    formulas = compounds["Formula"].to_numpy()
-    charges = compounds["Charge"].to_numpy()
-    max_amount = compounds["Max"].to_numpy()
-    min_amount = compounds["Min"].to_numpy()
-    masses = np.vectorize(peak_isotope)(formulas) - np.dot(PROTON_MASS, charges)
+#     exp_masses = bound_df['m/z'].to_numpy()
+#     exp_abundance = bound_df['I'].to_numpy()
+#     formulas = compounds["Formula"].to_numpy()
+#     charges = compounds["Charge"].to_numpy()
+#     max_amount = compounds["Max"].to_numpy()
+#     min_amount = compounds["Min"].to_numpy()
+#     masses = np.vectorize(peak_isotope)(formulas) - np.dot(PROTON_MASS, charges)
 
-    masses = (masses*100000).astype(int)
+#     masses = (masses*100000).astype(int)
 
-    masses_dict = dict(zip(formulas, masses))
-    max_amount_dict = dict(zip(formulas, max_amount))
-    min_amount_dict = dict(zip(formulas, min_amount))
+#     masses_dict = dict(zip(formulas, masses))
+#     max_amount_dict = dict(zip(formulas, max_amount))
+#     min_amount_dict = dict(zip(formulas, min_amount))
 
-    primaries_dict = dict(zip(formulas, compounds['Primaries'].notna().to_numpy()))
-    min_primaries = 3
+#     primaries_dict = dict(zip(formulas, compounds['Primaries'].notna().to_numpy()))
+#     min_primaries = 3
 
-    print('Searching for solutions...')
-    start = time.time()
-    print('Time started:', time.ctime(start))
+#     print('Searching for solutions...')
+#     start = time.time()
+#     print('Time started:', time.ctime(start))
 
-    for peak in [8775,8792,8811,8828,9002,9019,9037,9055]:
-        print(f'Peak {peak}: ', end='')
-        solutions = feasible_set_search(formulas, masses_dict, max_amount_dict, min_amount_dict, \
-            peak_mass=peak*100000, tolerance=400000, primaries=primaries_dict, min_primaries=min_primaries)
+#     for peak in [8775,8792,8811,8828,9002,9019,9037,9055]:
+#         print(f'Peak {peak}: ', end='')
+#         solutions = feasible_set_search(formulas, masses_dict, max_amount_dict, min_amount_dict, \
+#             peak_mass=peak*100000, tolerance=400000, primaries=primaries_dict, min_primaries=min_primaries)
     
-    end = time.time()
-    print('Time ended:', time.ctime(end))
-    print('Elapsed (minutes):', str((end-start)/60.))
+#     end = time.time()
+#     print('Time ended:', time.ctime(end))
+#     print('Elapsed (minutes):', str((end-start)/60.))

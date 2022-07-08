@@ -1,6 +1,6 @@
 import os
-from flask import Flask, flash, request, redirect, url_for, render_template, send_from_directory, send_file 
-from werkzeug.utils import secure_filename
+from flask import Flask, flash, request, render_template, send_file 
+# from werkzeug.utils import secure_filename
 import config
 from binding_site_search import search
 
@@ -132,4 +132,5 @@ def check_uploaded_files(bound, compound, analysis_complete):
     return default, data_dir
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # app.run(debug=True)
+    app.run()

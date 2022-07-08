@@ -1,7 +1,7 @@
-from cProfile import label
+# from cProfile import label
 import pandas as pd 
 import numpy as np
-from scipy import interpolate
+# from scipy import interpolate
 from scipy.signal import find_peaks
 import matplotlib.pyplot as plt
 from isotope_pattern import *
@@ -16,9 +16,9 @@ def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks
     peaks = bound_df.loc[peaks_idx]
 
     peak_masses = peaks["m/z"].to_numpy()
-    n = len(peak_masses)
+    # n = len(peak_masses)
     peak_I = peaks["I"].to_numpy()
-    keep = [False]*len(peak_masses)
+    # keep = [False]*len(peak_masses)
 
     args = np.argsort(-peak_I)
     keep = get_peaks(peak_masses[args])[np.argsort(args)] # inverse the argsort to get indices of peak_masses

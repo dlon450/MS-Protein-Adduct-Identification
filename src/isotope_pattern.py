@@ -1,12 +1,12 @@
-from multiprocessing.sharedctypes import Value
+# from multiprocessing.sharedctypes import Value
 from pyopenms import FineIsotopePatternGenerator, EmpiricalFormula, CoarseIsotopePatternGenerator
 import numpy as np
 import similaritymeasures
 from matplotlib import pyplot as plt
-from icecream import ic
-from scipy.spatial.distance import euclidean
-from fastdtw import fastdtw, dtw
-import time
+# from icecream import ic
+# from scipy.spatial.distance import euclidean
+# from fastdtw import fastdtw, dtw
+# import time
 
 PROTON_MASS = 1.0078250319
 
@@ -316,7 +316,7 @@ def find_species_additive_mass(species=["C769H1212N210O218S2", "Pt", "NH3", "H2O
 
 if __name__ == "__main__":
 
-    formula = 'C378H629N105O118S1'                  # Bruker: 8564.630429
+    # formula = 'C378H629N105O118S1'                  # Bruker: 8564.630429
     # print(peak_isotope(formula, accuracy=1e-3))     # 8564.630447593447
     formula = 'C769H1212N210O218S2'
     # find_nominal_masses(formula)

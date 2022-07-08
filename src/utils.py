@@ -1,9 +1,4 @@
 import pandas as pd 
-import numpy as np
-
-from os import listdir
-import config
-
 
 def read(bound_file_path, compounds_file_path, adducts_file_path):
     '''

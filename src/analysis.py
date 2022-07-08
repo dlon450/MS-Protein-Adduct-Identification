@@ -1,16 +1,16 @@
-from lib2to3.pgen2.parse import ParseError
+# from lib2to3.pgen2.parse import ParseError
 import pandas as pd 
 import numpy as np
 import config
 import matplotlib.pyplot as plt
 from binding_site_search import search
 from peak_search import peak_find
-from isotope_pattern import peak_isotope, peak_isotope_old
+from isotope_pattern import peak_isotope
 from os import listdir
 from os.path import isfile, join, dirname
-from utils import *
+from utils import normalise
 import sys
-import csv
+# import csv
 
 
 def search_all(dirpath, compounds_file, adducts_file):
@@ -46,7 +46,7 @@ def search_paired_files(dirpath, adducts_file, analysis=True):
         ground_truth_files.sort()
         tolerances = [3.1]
         peak_heights = [0.01]
-        first = True
+        # first = True
         for bound_fn, compound_fn, ground_truth in zip(bound_files, compound_files, ground_truth_files):
             # if first:
             #     first = False
@@ -116,7 +116,7 @@ def plot_resolutions_MS(x_range=[8400, 9400], lr_file='Data/Deconvoluted Spectra
             df = normalise(df)
             plt.subplot(subplot+i), plt.plot(df['m/z'], df['normalised_intensity']), plt.ylabel('Relative Abundance'), \
                 plt.xlim(x_range), plt.title(titles[i])
-            _, peaks, keep = peak_find(df, 0.01)
+            _, peaks, keep, _ = peak_find(df, 0.01)
             plt.subplot(subplot+i), plt.plot(df['m/z'][peaks[keep]], df['normalised_intensity'][peaks[keep]], "kx")
         plt.xlabel('Atomic mass')
         if save:
