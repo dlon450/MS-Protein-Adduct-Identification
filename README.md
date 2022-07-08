@@ -1,7 +1,7 @@
 # MS-Protein-Adduct-Identification
 Identification of protein adducts in deconvoluted mass spectrometry data by matching experimental peak distributions with potential isotope patterns.
 
-![GitHub](https://img.shields.io/github/license/dlon450/MS-Binding-Sites-Identification)
+![GitHub](https://img.shields.io/github/license/dlon450/MS-Binding-Sites-Identification) ![GitHub](https://img.shields.io/badge/python-v3.9.7-blue)
 
 ## Getting Started
 To access the web app, run the src/app.py file. 
