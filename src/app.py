@@ -50,14 +50,17 @@ def upload():
 
         tolerance = request.form.get('tolerance')
         peak_height = request.form.get('peak_height')
-        multi_protein = request.form.get('multiprotein')
+        multi_protein = 'on'
         min_primaries = request.form.get('min_primaries')
         max_primaries = request.form.get('max_primaries')
         max_adducts = request.form.get('max_adducts')
         valence = request.form.get('valence')
         min_dist_between_peaks = request.form.get('min_dist_between_peaks')
         calibrate = request.form.get('calibrate')
-        only_best = request.form.get('onlybest')
+        manual_calibration = request.form.get('manual_calibration_amount')
+        only_best = 'off'
+        return_all_peaks = request.form.get('return_all_peaks')
+        isotope_pattern_method = request.form.get('isotope_pattern_method')
 
         default, data_dir = check_uploaded_files(uploaded_unbound.filename, uploaded_compound.filename, analysis_complete)
 
@@ -74,7 +77,7 @@ def upload():
 
         binding_site_df = search(bound_file_path, compounds_file_path, adducts_file_path, tolerance, \
             peak_height, multi_protein, min_primaries, max_primaries, max_adducts, valence, only_best, \
-                min_dist_between_peaks, calibrate)
+                min_dist_between_peaks, calibrate, manual_calibration)
         print(binding_site_df)
 
         # download
@@ -133,4 +136,6 @@ def check_uploaded_files(bound, compound, analysis_complete):
 
 if __name__ == "__main__":
     # app.run(debug=True)
-    app.run()
+    # app.run()
+    from waitress import serve
+    serve(app, port=8080)

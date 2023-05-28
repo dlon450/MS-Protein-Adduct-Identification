@@ -8,7 +8,8 @@ from isotope_pattern import *
 import time
 
 
-def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks=4., calibrate=True, protein_strs=['C378H629N105O118S1']):
+def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks=4., \
+    calibrate=True, protein_strs=['C378H629N105O118S1'], manual_calibration=0.):
     '''
     Find distinct peaks above 'peak_height' (default 0.01) intensity 
     '''
@@ -38,10 +39,13 @@ def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks
     #         max_I = peak_I[i]
     # keep[k] = True
 
-    if calibrate:
+    if calibrate == "Automatic":
         shift = calibration_shift(peak_masses[keep], protein_formulas=protein_strs)
         bound_df['m/z'] += shift
         peak_masses += shift
+    elif calibrate == "Manual":
+        bound_df['m/z'] += manual_calibration
+        peak_masses += manual_calibration
 
     return peak_masses[keep], peaks_idx, keep, dict(zip(peak_masses, properties['peak_heights']))
 

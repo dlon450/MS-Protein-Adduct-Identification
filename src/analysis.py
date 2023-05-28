@@ -111,7 +111,7 @@ def plot_resolutions_MS(x_range=[8400, 9400], lr_file='Data/Deconvoluted Spectra
 
     subplot = 311
     if plot_peaks:
-        titles = ['LR', 'MR', 'HR']
+        titles = ['Low Resolution', 'Medium Resolution', 'High Resolution']
         for i, df in enumerate([lr, mr, hr]):
             df = normalise(df)
             plt.subplot(subplot+i), plt.plot(df['m/z'], df['normalised_intensity']), plt.ylabel('Relative Abundance'), \
@@ -120,7 +120,7 @@ def plot_resolutions_MS(x_range=[8400, 9400], lr_file='Data/Deconvoluted Spectra
             plt.subplot(subplot+i), plt.plot(df['m/z'][peaks[keep]], df['normalised_intensity'][peaks[keep]], "kx")
         plt.xlabel('Atomic mass')
         if save:
-            plt.savefig('Data/Deconvoluted Spectra/peak_identification_res.png')
+            plt.savefig('Data/Deconvoluted Spectra/peak_identification_res.pdf')
     else:
         plt.subplot(311), plt.plot(lr['m/z'], lr['I']), plt.ylabel('Intensity'), \
             plt.xlim(x_range), plt.title('Low Resolution')
@@ -129,7 +129,7 @@ def plot_resolutions_MS(x_range=[8400, 9400], lr_file='Data/Deconvoluted Spectra
         plt.subplot(313), plt.plot(hr['m/z'], hr['I']), plt.ylabel('Intensity'), plt.xlabel('m'), \
             plt.xlim(x_range), plt.title('High Resolution')
         if save:
-            plt.savefig('Data/Deconvoluted Spectra/MS_resolution.png')
+            plt.savefig('Data/Deconvoluted Spectra/MS_resolution.pdf')
 
     # plt.bar(hr['m/z'], hr['I'], width=0.05), plt.ylabel('Intensity'), plt.xlabel('m'), plt.xlim([8558.6, 8577.6])
     plt.show()
@@ -280,19 +280,21 @@ if __name__ == "__main__":
 
     # search_all('Data/Deconvoluted Spectra', compounds, adducts)
     # search_paired_files(r'Data\Input Data\RAPTA-C-20220421T034334Z-001\RAPTA-C', adducts, analysis=True)
-    false_positives = {}
-    for folder in folders:
-        # search_paired_files(folder, adducts, analysis=True)
+    # false_positives = {}
+    # for folder in folders:
+    #     # search_paired_files(folder, adducts, analysis=True)
 
-        fp = find_peaks_with_solutions(folder, adducts)
-        for col, val in fp.items():
-            if col not in false_positives:
-                false_positives[col] = val
-            else:
-                false_positives[col].extend(val)
+    #     fp = find_peaks_with_solutions(folder, adducts)
+    #     for col, val in fp.items():
+    #         if col not in false_positives:
+    #             false_positives[col] = val
+    #         else:
+    #             false_positives[col].extend(val)
 
-        # insert_intensities(folder)
-    pd.DataFrame.from_dict(false_positives, orient='index').transpose().to_csv(r'Data\Input Data\missing_peaks.csv', index=False)
+    #     # insert_intensities(folder)
+    # pd.DataFrame.from_dict(false_positives, orient='index').transpose().to_csv(r'Data\Input Data\missing_peaks.csv', index=False)
+    plt.rcParams["figure.figsize"] = (15,12)
+    plot_resolutions_MS()
 
     # distances = [find_peak_distances_distribution(folder) for folder in folders]
     # print(distances)

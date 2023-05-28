@@ -2,7 +2,7 @@
 <html lang="en" style="margin:50px 200px 50px 200px;">
   <head>
     <meta charset="utf-8">
-    <title>Binding Site Prediction</title>
+    <title>Protein Adduct Stoichiometry Prediction</title>
 	
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
     <script src="{{ url_for('static', filename='js/jquery-3.5.1.min.js') }}"></script>
@@ -10,7 +10,7 @@
 	 
   </head>
   <body>
-    <h1> Binding Site Prediction</h1>
+    <h1>Protein Adduct Stoichiometry Prediction</h1>
 
 	<!-- Upload functionality -->
 	<div>
@@ -20,32 +20,42 @@
 			<div class="form-label-group">
 				<div class="custom-file">
 					<input type=file name=bound_file id="file" class="custom-file-input" multiple>
-					<label class="custom-file-label" for="bound_file">Choose bound mass spectrometry data file</label>
+					<label class="custom-file-label" for="bound_file">Choose file for deconvoluted mass spectrum of adducted protein sample</label>
         </div>
         <br> </br>
         <div class="custom-file">
 					<input type=file name=compound_file id="file" class="custom-file-input" multiple>
-					<label class="custom-file-label" for="compound_file">Choose compounds constraint file</label>
+					<label class="custom-file-label" for="compound_file">Choose file for compound description and constraints</label>
 				</div>
         <br> </br>
         <div class="custom-file">
 					<input type=file name=adducts_file id="file" class="custom-file-input" multiple>
-					<label class="custom-file-label" for="adducts_file">Choose adducts file</label>
+					<label class="custom-file-label" for="adducts_file">Choose file for standard adduct description and constraints (or do not upload and use default)</label>
 				</div>
       </div>
       <br> </br>
       <h3> Peak Search </h3>
-      Tolerance: <input type="number" step="0.1" name="tolerance" value=2.1><br>
-      Peak height: <input type="number" step="0.01" name="peak_height" value=0.01><br>
-      Minimum peak distance: <input type="number" step="0.1" name="min_dist_between_peaks" value=3.0><br>
-      <input type="checkbox" name="calibrate" checked> Calibrate<br></br>
+      Mass tolerance: <input type="number" step="0.1" name="tolerance" value=2.1><br>
+      Minimum peak height: <input type="number" step="0.01" name="peak_height" value=0.01><br>
+      Minimum mass difference between two protein adducts: <input type="number" step="0.5" name="min_dist_between_peaks" value=4.0><br>
+      Re-calibration of mass spectrum: <select name="calibrate" id="calibrate">
+        <option value="Automatic">Automatic</option>
+        <option value="Manual">Manual</option>
+        <option value="None">None</option> 
+      </select> <input type="number" step="0.5" name="manual_calibration_amount" value=-><br>
+      Return all peaks detected (even those without any feasible species): <select name="return_all_peaks" id="return_all_peaks">
+        <option value="No">No</option>
+        <option value="Yes">Yes</option>
+      </select> <br></br>
       <h3> Feasible Set </h3>
-      Maximum unique adducts: <input type="number" step="1" name="max_adducts" value=2><br>
-      Metal valence: <input type="number" step="1" name="valence" value=3><br>
-      <input type="checkbox" name="multiprotein"> Multi-protein
-      (minimum primaries: <input type="number" step="1" name="min_primaries" value=1>,
-      maximum primaries: <input type="number" step="1" name="max_primaries" value=2>)<br>
-      <input type="checkbox" name="onlybest"> Only best
+      Maximum unique standard adducts: <input type="number" step="1" name="max_adducts" value=2><br>
+      Coordination number of metal: <input type="number" step="1" name="valence" value=3><br>
+      Minimum number of proteins: <input type="number" step="1" name="min_primaries" value=1> (for when there are multiple proteins)<br>
+      Maximum number of proteins: <input type="number" step="1" name="max_primaries" value=1> (for when there are multiple proteins)<br>
+      Isotope pattern generation method: <select name="isotope_pattern_method" id="isotope_pattern_method">
+        <option value="Hyperfine">Hyperfine</option>
+        <option value="Coarse">Coarse</option>
+      </select>
       <br> </br>
 			<button type="submit"
 				class="btn btn-primary btn-block">Submit</button>
