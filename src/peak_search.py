@@ -9,7 +9,7 @@ import time
 
 
 def peak_find(bound_df: pd.DataFrame, peak_height: float, min_dist_between_peaks=4., \
-    calibrate=True, protein_strs=['C378H629N105O118S1'], manual_calibration=0.):
+    calibrate="Automatic", protein_strs=['C378H629N105O118S1'], manual_calibration=0.):
     '''
     Find distinct peaks above 'peak_height' (default 0.01) intensity 
     '''

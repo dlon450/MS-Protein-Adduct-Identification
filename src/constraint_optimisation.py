@@ -31,9 +31,8 @@ class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
     def get_variables(self):
         return self.__all_variables, self.__solution_count
 
-
 def feasible_set_search(compounds, compound_masses, compound_maximum, compound_minimum, \
-        peak_mass: float, tolerance=4, multi_protein=False, primaries=None, min_primaries=None, \
+        peak_mass, tolerance, multi_protein=False, primaries=None, min_primaries=None, \
             max_primaries=None, metal_idx=None, max_per_metal=None, adducts=None, max_adducts=None, \
                 valence=None):
     '''
@@ -85,8 +84,7 @@ def feasible_set_search(compounds, compound_masses, compound_maximum, compound_m
     # Enumerate all solutions.
     solver.parameters.enumerate_all_solutions = True
     # Solve.
-    # status = solver.Solve(model, solution_printer)
-
+    status = solver.Solve(model, solution_printer)
     # print('Status = %s' % solver.StatusName(status))
     print('Number of solutions found: %i' % solution_printer.solution_count())
     

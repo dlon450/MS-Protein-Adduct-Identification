@@ -255,7 +255,8 @@ def find_peak_distances_distribution(dirpath):
         
         if 'Experimental Mass' in gt.columns:
             p = gt['Experimental Mass'].to_numpy()
-            distances.append([t - s for s, t in zip(p, p[1:])])
+            distances.append([t - s for s, t in zip(
+                p, p[1:])])
 
     return distances
 

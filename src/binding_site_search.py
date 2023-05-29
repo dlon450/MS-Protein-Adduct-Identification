@@ -80,12 +80,12 @@ def search(bound_file_path, compounds_file_path, adducts_file_path, tolerance=co
 
 if __name__ == "__main__":
 
-    # compounds = "Data/Compound Constraints/Compounds_CisOxTrans_latest.xlsx"
+    compounds = "Data/Compound Constraints/Compounds_CisOxTrans_latest.xlsx"
     adducts = "Data/Compound Constraints/Standard_Adducts.xlsx"
-    # bound = "Data/Deconvoluted Spectra/uc_medres_precal.xlsx"
+    bound = "Data/Deconvoluted Spectra/uc_medres_precal.xlsx"
 
-    bound = r"Data\Input Data\RAPTA-C-20220421T034334Z-001\RAPTA-C\bound_spectrum_mb_rapc_precal.xlsx"
-    compounds = r"Data\Input Data\RAPTA-C-20220421T034334Z-001\RAPTA-C\compounds_mb_rapc.xlsx"
+    # bound = r"Data\Input Data\RAPTA-C-20220421T034334Z-001\RAPTA-C\bound_spectrum_mb_rapc_precal.xlsx"
+    # compounds = r"Data\Input Data\RAPTA-C-20220421T034334Z-001\RAPTA-C\compounds_mb_rapc.xlsx"
 
     # plt.rcParams["figure.figsize"] = (18,3)
     binding_sites = search(bound, compounds, adducts)

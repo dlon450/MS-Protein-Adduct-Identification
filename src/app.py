@@ -58,6 +58,7 @@ def upload():
         min_dist_between_peaks = request.form.get('min_dist_between_peaks')
         calibrate = request.form.get('calibrate')
         manual_calibration = request.form.get('manual_calibration_amount')
+        manual_calibration = manual_calibration if manual_calibration != '' else 0.
         only_best = 'off'
         return_all_peaks = request.form.get('return_all_peaks')
         isotope_pattern_method = request.form.get('isotope_pattern_method')
