@@ -1,5 +1,5 @@
 # MS-Protein-Adduct-Identification
-Identification of protein adducts in deconvoluted mass spectrometry data by matching experimental peak distributions with potential isotope patterns.
+Identification of protein adducts in deconvoluted mass spectrometry data by matching experimental peak distributions with potential isotope patterns. [Here](https://link.springer.com/article/10.1186/s13321-023-00797-7) is the corresponding paper.
 
 ![GitHub](https://img.shields.io/github/license/dlon450/MS-Binding-Sites-Identification) ![GitHub](https://img.shields.io/badge/python-v3.9.7-blue)
 
